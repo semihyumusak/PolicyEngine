@@ -1,0 +1,35 @@
+{
+  "uid": "http://example.com/policy:001",
+  "permission": [
+    {
+      "target": "http://example.com/asset:123",
+      "action": "read",
+      "constraint": {
+        "leftOperand": "dateTime",
+        "operator": "lt",
+        "rightOperand": "2024-03-01T00:00:00Z"
+      },
+      "duty": [
+        {
+          "action": "attribute",
+          "constraint": {
+            "leftOperand": "dateTime",
+            "operator": "lt",
+            "rightOperand": "2024-01-01T00:00:00Z"
+          }
+        }
+      ]
+    }
+  ],
+  "prohibition": [
+    {
+      "target": "http://example.com/asset:123",
+      "action": "write",
+      "constraint": {
+        "leftOperand": "dateTime",
+        "operator": "gte",
+        "rightOperand": "2024-01-01T00:00:00Z"
+      }
+    }
+  ]
+}
