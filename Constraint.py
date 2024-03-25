@@ -37,6 +37,18 @@ class ArithmeticConstraint(Constraint):
             return value <= self.reference
         elif self.operator == 'neq':
             return value != self.reference
+        elif self.operator == "isA":  # This will require OWL reasoning for completeness.
+            return value.type == self.reference
+        elif self.operator == "hasPart":
+            return all(item in self.reference for item in value)
+        elif self.operator == "isPartOf":
+            return all(item in value for item in self.reference)
+        elif self.operator == "isAllOf":
+            return all(item == self.reference for item in value)
+        elif self.operator == "isAnyOf":
+            return any(item == self.reference for item in value)
+        elif self.operator == "isNoneOf":
+            return all(item != self.reference for item in value)
         else:
             return False
 
