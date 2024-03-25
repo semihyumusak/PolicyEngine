@@ -1,7 +1,7 @@
 # PolicyEngine
 
 ## Example policy:
-```javascript
+```json
 {
   "uid": "http://example.com/policy:001",
   "permission": [
@@ -38,9 +38,10 @@
   ]
 }
 ```
+
 ## Sample Requests
-### Request 1
-```javascript
+###  Request 1
+```json
 {
         "target": "http://example.com/asset:123",
         "action": "read",
@@ -48,7 +49,7 @@
 }
 ```
 ### Response 1
-```javascript
+```json
 {
     "allowed": True
 }
