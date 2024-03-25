@@ -1,9 +1,23 @@
+"""
+Author: Semih Yumuşak
+Date: March 25, 2024
+Description: This is the constraint package which has logical and arithmetic constraint implementations.
+
+Contributors:
+
+"""
+
 class Constraint:
-    def __init__(self, operator, leftOperand=None, reference=None, constraints=None):
+    def __init__(self):
+        pass
+    def evaluate(self):
+        pass
+
+class ArithmeticConstraint(Constraint):
+    def __init__(self, operator, leftOperand=None, reference=None):
         self.operator = operator
         self.leftOperand = leftOperand  # The specific operand that needs an exact match to proceed
         self.reference = reference
-        self.constraints = constraints or []
 
     def check_constraint(self, leftOperandValue, value):
         # First, check if the leftOperand matches exactly
@@ -23,25 +37,22 @@ class Constraint:
             return value <= self.reference
         elif self.operator == 'neq':
             return value != self.reference
-        elif self.operator in ['or', 'xone', 'and', 'andSequence']:
-            results = [constraint.check_constraint(leftOperandValue, value) for constraint in self.constraints]
-            if self.operator == 'or':
-                return any(results)
-            elif self.operator == 'xone':
-                return sum(results) == 1
-            elif self.operator == 'and':
-                return all(results)
-            elif self.operator == 'andSequence':
-                return all(results) and results == sorted(results, reverse=True)
         else:
             return False
 
-if __name__ == '__main__':
-    # Example usage:
-    # Define constraints with a specific leftOperand requirement
-    constraint1 = Constraint('gt', leftOperand='temperature', reference=10)
-    constraint2 = Constraint('lt', leftOperand='temperature', reference=20)
-    logical_constraint = Constraint('and', constraints=[constraint1, constraint2])
+class LogicalConstraint(Constraint):
+    def __init__(self, operator):
+        self.operator = operator
 
-    print(logical_constraint.check_constraint('temperature', 15))  # Should return True
-    print(logical_constraint.check_constraint('humidity', 15))     # Should return False due to leftOperand mismatch
+    def check_constraint(self, value):
+        if self.operator == 'or':
+            return any(constraint.check_constraint(None, value) for constraint in self.constraints)
+        elif self.operator == 'xone':
+            return sum(constraint.check_constraint(None, value) for constraint in self.constraints) == 1
+        elif self.operator == 'and':
+            return all(constraint.check_constraint(None, value) for constraint in self.constraints)
+        elif self.operator == 'andSequence':
+            results = [constraint.check_constraint(None, value) for constraint in self.constraints]
+            return all(results) and results == sorted(results, reverse=True)
+        else:
+            return False

@@ -1,8 +1,17 @@
-from Action import Action
-from AssetCollection import AssetCollection
-from Constraint import Constraint
-from PartyCollection import PartyCollection
+"""
+Author: Semih Yumuşak
+Date: March 25, 2024
+Description: This is file containing Policy and rule classes.
 
+Contributors:
+
+"""
+
+
+from Refinables.Action import Action
+from Refinables.AssetCollection import AssetCollection
+from Constraint import Constraint
+from Refinables.PartyCollection import PartyCollection
 
 class Rule:
     def __init__(self, target:AssetCollection, action: Action, assigner, assignee: PartyCollection):
@@ -21,10 +30,18 @@ class Rule:
     def is_active(self):
         return self.state == "Active"
 
-    def __str__(self):
-        return (f"Rule(Target: {self.target}, Action: {self.action}, "
-                f"Assigner: {self.assigner}, Assignee: {self.assignee}, "
-                f"State: {self.state})")
+
+class Policy:
+    def __init__(self, uid, profiles=None, inherit_from=None, conflict=None):
+        self.uid = uid
+        self.rules = []
+        self.profiles = profiles if profiles else []
+        self.inherit_from = inherit_from if inherit_from else []
+        self.conflict = conflict
+    def addRule(self, rule:Rule):
+        self.rules.append(rule)
+    def removeRule(self, rule:Rule):
+        self.rules.remove(rule)
 
 class Permission(Rule):
     def __init__(self, target, action, assigner, assignee, duty=None):
@@ -40,10 +57,8 @@ class Permission(Rule):
         super().__init__(target, action, assigner, assignee)
         self.duty = duty
 
-    def __str__(self):
-        base_str = super().__str__()
-        duty_str = f", Duty: {str(self.duty)}" if self.duty else ""
-        return f"{base_str}{duty_str}"
+    def is_used(self):
+        pass
 
 
 class Prohibition(Rule):
@@ -59,10 +74,11 @@ class Prohibition(Rule):
         """
         super().__init__(target, action, assigner, assignee)
         self.remedy = remedy
-    def __str__(self):
-        base_str = super().__str__()
-        remedy_str = f", Remedy: {str(self.remedy)}" if self.remedy else ""
-        return f"{base_str}{remedy_str}"
+
+    def is_violated(self):
+        pass
+
+
 
 
 class Duty(Rule):
@@ -101,63 +117,6 @@ class Duty(Rule):
         Sets the consequence of the duty.
         """
         self.consequence = consequence
-
-    def __str__(self):
-        base_str = super().__str__()
-        actions_str = ", ".join(str(action) for action in self.actions)
-        constraints_str = ", ".join(str(constraint) for constraint in self.constraints)
-        consequence_str = f"Consequence: [{str(self.consequence)}]" if self.consequence else "No consequence"
-        return f"{base_str}, Additional Actions: [{actions_str}], Constraints: [{constraints_str}], {consequence_str}"
-
-
-if __name__ == '__main__':
-    # Example usage:
-    rule1 = Rule(target="Document Approval", action="Approve", assigner="Manager", assignee="Employee")
-    print(rule1)
-
-    rule1.activate()
-    print("Is rule1 active?", rule1.is_active())
-
-    rule1.deactivate()
-    print("Is rule1 active?", rule1.is_active())
-
-    # Example usage:
-    # Assuming Action and Constraint classes are defined as previously discussed
-
-    # Simple duty example
-    simple_duty = Action("Notify")
-
-    # Complex duty example with refinements
-    constraint1 = Constraint('eq', leftOperand='day', reference="Friday")
-    complex_duty = Action("Report", refinements=[constraint1])
-
-    # Creating Permission instances
-    simple_permission = Permission(target="Document", action="Edit", assigner="Manager", assignee="Employee",
-                                   duty=simple_duty)
-    print(simple_permission)
-
-    complex_permission = Permission(target="System", action="Access", assigner="Admin", assignee="User",
-                                    duty=complex_duty)
-    print(complex_permission)
-
-
-    # Example usage:
-    # Assuming the Action, Constraint, and Rule classes are defined as previously discussed
-
-    # Define a primary duty
-    primary_duty = Duty(target="Report Submission", action="Submit", assigner="Manager", assignee="Employee")
-
-    # Define a consequence duty for failing to fulfill the primary duty
-    consequence_duty = Duty(target="Late Report", action="Notify", assigner="System", assignee="Manager")
-
-    # Add actions and constraints to the primary duty
-    action1 = Action("Write")
-    constraint1 = Constraint('lt', leftOperand='deadline', reference=24)
-    primary_duty.add_action(action1)
-    primary_duty.add_constraint(constraint1)
-
-    # Set the consequence of the primary duty
-    primary_duty.set_consequence(consequence_duty)
-
-    print(primary_duty)
+    def is_fulfilled(self):
+        pass
 
