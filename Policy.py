@@ -7,28 +7,77 @@ Contributors:
 
 """
 
+from typing import Union
 
-from Refinables.Action import Action
-from Refinables.AssetCollection import AssetCollection
+from Refinables import Action
+from Refinables import AssetCollection
+from Refinables import PartyCollection
 from Constraint import Constraint
-from Refinables.PartyCollection import PartyCollection
 
 class Rule:
-    def __init__(self, target:AssetCollection, action: Action, assigner, assignee: PartyCollection):
-        self.target = target
+    def __init__(self, action: Action, target: AssetCollection = None, assigner: Union[PartyCollection, None] = None, assignee: Union[PartyCollection, None] = None, constraints: list[Union[Constraint, 'LogicalConstraint']] = None, uid: str = None):
+        """
+        Initializes a Rule instance.
+
+        :param action: The action associated with the Rule.
+        :param target: Optional; the target AssetCollection associated with the Rule.
+        :param assigner: Optional; the assigner PartyCollection associated with the Rule.
+        :param assignee: Optional; the assignee PartyCollection associated with the Rule.
+        :param constraints: Optional list of Constraint or LogicalConstraint objects associated with the Rule.
+        :param uid: Optional; the unique identifier of the Rule.
+        """
         self.action = action
+        self.target = target
         self.assigner = assigner
         self.assignee = assignee
+        self.constraints = constraints if constraints is not None else []
+        self.uid = uid
         self.state = "Inactive"  # Default state is Inactive
 
+    def add_constraint(self, constraint: Union[Constraint, 'LogicalConstraint']):
+        """
+        Adds a constraint to the Rule.
+
+        :param constraint: Constraint or LogicalConstraint object to be added.
+        """
+        self.constraints.append(constraint)
+
+    def remove_constraint(self, constraint: Union[Constraint, 'LogicalConstraint']):
+        """
+        Removes a constraint from the Rule.
+
+        :param constraint: Constraint or LogicalConstraint object to be removed.
+        """
+        if constraint in self.constraints:
+            self.constraints.remove(constraint)
+
+    def clear_constraints(self):
+        """
+        Clears all constraints associated with the Rule.
+        """
+        self.constraints = []
+
     def activate(self):
+        """
+        Activates the Rule.
+        """
         self.state = "Active"
 
     def deactivate(self):
+        """
+        Deactivates the Rule.
+        """
         self.state = "Inactive"
 
-    def is_active(self):
+    def is_active(self) -> bool:
+        """
+        Checks if the Rule is active.
+
+        :return: True if the Rule is active, False otherwise.
+        """
         return self.state == "Active"
+
+
 
 
 class Policy:
