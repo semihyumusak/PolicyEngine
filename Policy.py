@@ -78,8 +78,6 @@ class Rule:
         return self.state == "Active"
 
 
-
-
 class Policy:
     def __init__(self, uid, profiles=None, inherit_from=None, conflict=None):
         self.uid = uid
@@ -106,6 +104,20 @@ class Permission(Rule):
         super().__init__(target, action, assigner, assignee)
         self.duty = duty
 
+    def set_duty(self, duty):
+        """
+        Sets or updates the duty associated with the permission.
+
+        :param duty: Action instance representing the duty.
+        """
+        self.duty = duty
+
+    def clear_duty(self):
+        """
+        Removes the duty associated with the permission.
+        """
+        self.duty = None
+
     def is_used(self):
         pass
 
@@ -124,9 +136,30 @@ class Prohibition(Rule):
         super().__init__(target, action, assigner, assignee)
         self.remedy = remedy
 
-    def is_violated(self):
-        pass
 
+    def is_violated(self):
+        """
+        Checks if the prohibition has been violated.
+
+        :return: True if the prohibition has been violated, False otherwise.
+        """
+        # # TODO: Implement your logic to check if the prohibition is violated here
+        # For example, if the remedy is not None, consider it as violated
+        return self.remedy is not None
+
+    def set_remedy(self, remedy):
+        """
+        Sets or updates the remedy associated with the prohibition.
+
+        :param remedy: Action instance representing the remedy.
+        """
+        self.remedy = remedy
+
+    def clear_remedy(self):
+        """
+        Removes the remedy associated with the prohibition.
+        """
+        self.remedy = None
 
 
 
@@ -149,23 +182,64 @@ class Duty(Rule):
         self.constraints = constraints if constraints is not None else []
         self.consequence = consequence
 
+
     def add_action(self, action):
         """
         Adds an additional action to the duty.
+
+        :param action: Action object to be added.
         """
         self.actions.append(action)
+    def remove_action(self, action):
+        """
+        Remove action from the duty.
+
+        :param action: Action object to be removed.
+        """
+        if action in self.actions:
+            self.actions.remove(action)
 
     def add_constraint(self, constraint):
         """
         Adds a constraint to the duty.
+
+        :param constraint: Constraint object to be added.
         """
         self.constraints.append(constraint)
 
     def set_consequence(self, consequence):
         """
         Sets the consequence of the duty.
+
+        :param consequence: Duty object representing the consequence.
         """
         self.consequence = consequence
+
     def is_fulfilled(self):
-        pass
+        """
+        Checks if the duty is fulfilled.
+
+        :return: True if the duty is fulfilled, False otherwise.
+        """
+        # Implement your logic to check if the duty is fulfilled here
+        # For example, if all constraints are satisfied, consider it as fulfilled
+        return all(constraint.is_satisfied() for constraint in self.constraints)
+
+    def clear_actions(self):
+        """
+        Clears all additional actions associated with the duty.
+        """
+        self.actions = []
+
+    def clear_constraints(self):
+        """
+        Clears all constraints associated with the duty.
+        """
+        self.constraints = []
+
+    def clear_consequence(self):
+        """
+        Clears the consequence associated with the duty.
+        """
+        self.consequence = None
 
