@@ -6,27 +6,36 @@ Description: This is the asset collection class which implements refinable inter
 Contributors:
 
 """
-
+from typing import List, Union
 
 from Constraint import Constraint
 from Interfaces.Refinable import RefinableInterface
 
-
 class AssetCollection(RefinableInterface):
-
-    def remove_constraint(self, constraint: Constraint):
-        self.refinements.remove(constraint)
-
-    def add_constraint(self, constraint: Constraint):
-        self.refinements.append(constraint)
-
-    def __init__(self, identifier, refinement=None):
+    def __init__(self, source: str, refinements: List[Constraint] = None):
         """
         Initializes an AssetCollection instance.
 
-        :param identifier: A string or an object representing the collection. If an object, it should have a 'source' attribute.
-        :param refinement: Optional; a list of Constraint objects that refine the conditions of the asset collection.
+        :param source: The source reference of the AssetCollection.
+        :param refinements: Optional list of Constraint objects that refine the conditions of the AssetCollection.
         """
-        self.identifier = identifier
-        self.refinements = refinement if refinement is not None else []
+        self.source = source
+        self.refinements = refinements if refinements is not None else []
+
+    def add_refinement(self, constraint: Constraint):
+        """
+        Adds a refinement to the AssetCollection.
+
+        :param constraint: Constraint object to be added as a refinement.
+        """
+        self.refinements.append(constraint)
+
+    def remove_refinement(self, constraint: Constraint):
+        """
+        Removes a refinement from the AssetCollection.
+
+        :param constraint: Constraint object to be removed from refinements.
+        """
+        if constraint in self.refinements:
+            self.refinements.remove(constraint)
 
