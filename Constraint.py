@@ -14,10 +14,10 @@ class Constraint:
         pass
 
 class ArithmeticConstraint(Constraint):
-    def __init__(self, operator, leftOperand=None, reference=None):
+    def __init__(self, leftOperand, operator, rightOperand):
         self.operator = operator
         self.leftOperand = leftOperand  # The specific operand that needs an exact match to proceed
-        self.reference = reference
+        self.rightOperand = rightOperand
 
     def check_constraint(self, leftOperandValue, value):
         # First, check if the leftOperand matches exactly
@@ -26,29 +26,29 @@ class ArithmeticConstraint(Constraint):
 
         # Proceed with the constraint checks
         if self.operator == 'eq':
-            return value == self.reference
+            return value == self.rightOperand
         elif self.operator == 'gt':
-            return value > self.reference
+            return value > self.rightOperand
         elif self.operator == 'gteq':
-            return value >= self.reference
+            return value >= self.rightOperand
         elif self.operator == 'lt':
-            return value < self.reference
+            return value < self.rightOperand
         elif self.operator == 'lteq':
-            return value <= self.reference
+            return value <= self.rightOperand
         elif self.operator == 'neq':
-            return value != self.reference
+            return value != self.rightOperand
         elif self.operator == "isA":  # This will require OWL reasoning for completeness.
-            return value.type == self.reference
+            return value.type == self.rightOperand
         elif self.operator == "hasPart":
-            return all(item in self.reference for item in value)
+            return all(item in self.rightOperand for item in value)
         elif self.operator == "isPartOf":
-            return all(item in value for item in self.reference)
+            return all(item in value for item in self.rightOperand)
         elif self.operator == "isAllOf":
-            return all(item == self.reference for item in value)
+            return all(item == self.rightOperand for item in value)
         elif self.operator == "isAnyOf":
-            return any(item == self.reference for item in value)
+            return any(item == self.rightOperand for item in value)
         elif self.operator == "isNoneOf":
-            return all(item != self.reference for item in value)
+            return all(item != self.rightOperand for item in value)
         else:
             return False
 
