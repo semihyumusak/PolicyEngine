@@ -12,91 +12,27 @@ from typing import List
 from Constraint import Constraint
 from Interfaces import RefinableInterface
 
-
-class Action(RefinableInterface):
-    def __init__(self, value: str, refinements: List[Constraint] = None, included_in: 'Action' = None,
-                 implies: List['Action'] = None):
+class Refinable(RefinableInterface):
+    def __init__(self,  **args):
         """
         Initializes an Action instance.
 
         :param value: The main action, can be a string or an object representing the action.
         :param refinements: Optional list of Constraint objects that refine the conditions of the action.
         :param included_in: The encompassing Action.
-        :param implies: Optional list of Actions that are implied by this Action.
+        :param implies: Optional list of action that are implied by this Action.
         """
-        self.value = value
-        self.refinements = refinements if refinements is not None else []
-        self.included_in = included_in
-        self.implies = implies if implies is not None else []
-
-    def add_refinement(self, constraint: Constraint):
-        """
-        Adds a refinement to the action.
-
-        :param constraint: Constraint object to be added as a refinement.
-        """
-        self.refinements.append(constraint)
-
-    def remove_refinement(self, constraint: Constraint):
-        """
-        Removes a refinement from the action.
-
-        :param constraint: Constraint object to be removed from refinements.
-        """
-        if constraint in self.refinements:
-            self.refinements.remove(constraint)
-
-    """
-    #TODO Check semantics of imply property, if this is valid or not"""
-
-    def add_implied_action(self, action: 'Action'):
-        """
-        Adds an implied action.
-
-        :param action: Action object to be added as an implied action.
-        """
-        self.implies.append(action)
-
-
-class AssetCollection(RefinableInterface):
-    def __init__(self, source: str, refinements: List[Constraint] = None):
-        """
-        Initializes an AssetCollection instance.
-
-        :param source: The source reference of the AssetCollection.
-        :param refinements: Optional list of Constraint objects that refine the conditions of the AssetCollection.
-        """
-        self.source = source
-        self.refinements = refinements if refinements is not None else []
-
-    def add_refinement(self, constraint: Constraint):
-        """
-        Adds a refinement to the AssetCollection.
-
-        :param constraint: Constraint object to be added as a refinement.
-        """
-        self.refinements.append(constraint)
-
-    def remove_refinement(self, constraint: Constraint):
-        """
-        Removes a refinement from the AssetCollection.
-
-        :param constraint: Constraint object to be removed from refinements.
-        """
-        if constraint in self.refinements:
-            self.refinements.remove(constraint)
-
-
-class PartyCollection(RefinableInterface):
-    def __init__(self, source: str, refinements: List[Constraint] = None):
-        """
-        Initializes a PartyCollection instance.
-
-        :param source: The source reference of the PartyCollection.
-        :param refinements: Optional list of Constraint objects that refine the conditions of the PartyCollection.
-        """
-        self.source = source
-        self.refinements = refinements if refinements is not None else []
+        # refinements: List[Constraint] = None,
+        self.source = args.get("source", None)
+        self.uid = args.get("uid", None)
+        self.value = args.get("value", None)
+        refinement = args.get("refinement", None)
+        if isinstance(refinement, dict):
+            self.refinement = Action(**refinement)
+        elif isinstance(refinement, list):
+            self.refinement = [Action(**c) for c in refinement]
+        self.other = args
+        # self.refinements = refinements if refinements is not None else []
 
     def add_refinement(self, constraint: Constraint):
         """
@@ -114,3 +50,40 @@ class PartyCollection(RefinableInterface):
         """
         if constraint in self.refinements:
             self.refinements.remove(constraint)
+
+class Action(Refinable):
+    def __init__(self, **args):
+        """
+        Initializes an Action instance.
+
+        :param value: The main action, can be a string or an object representing the action.
+        :param refinements: Optional list of Constraint objects that refine the conditions of the action.
+        :param included_in: The encompassing Action.
+        :param implies: Optional list of action that are implied by this Action.
+        """
+        super().__init__(**args)
+
+
+
+class AssetCollection(Refinable):
+    def __init__(self,  **args):
+        """
+        Initializes an AssetCollection instance.
+
+        :param source: The source reference of the AssetCollection.
+        :param refinements: Optional list of Constraint objects that refine the conditions of the AssetCollection.
+        """
+        super().__init__(**args)
+
+
+
+class PartyCollection(Refinable):
+    def __init__(self, **args):
+        """
+        Initializes a PartyCollection instance.
+
+        :param source: The source reference of the PartyCollection.
+        :param refinements: Optional list of Constraint objects that refine the conditions of the PartyCollection.
+        """
+        super().__init__(**args)
+
