@@ -1,10 +1,17 @@
+from Parsers import ODRLParser
+odrl = ODRLParser()
+policy = odrl.parse("./examples/policy.odrl")
+
+# ----------------------------  SAMPLE CLASS USE ----------------------------------#
+
 from Constraint import ArithmeticConstraint
 from Policy import Rule, Permission, Prohibition, Duty, Policy
 from Refinables import Action, AssetCollection, PartyCollection
 
+
 # Creating an Action instance
 action1 = Action("read")
-constraint1 = ArithmeticConstraint(leftOperand="count", operator="gteq", rightOperand=5) # Number of actions is equal to or greater than 5.
+constraint1 = ArithmeticConstraint(leftOperand="count", operator="gteq", rightOperand=5) # Number of action is equal to or greater than 5.
 action1.add_refinement(constraint1)
 
 action2 = Action("compensate")
