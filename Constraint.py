@@ -8,8 +8,18 @@ Contributors:
 """
 
 class Constraint:
-    def __init__(self):
+    def __init__(self, leftOperand=None, operator=None, rightOperand=None, **args):
+        if leftOperand is None:
+            LogicalConstraint.__init__(self,**args)
+        else:
+            ArithmeticConstraint.__init__(self,leftOperand=leftOperand,operator=operator, rightOperand=rightOperand)
+
+    def evaluate(self):
         pass
+
+class Refinement(Constraint):
+    def __init__(self, leftOperand=None, operator=None, rightOperand=None, **args):
+        super().__init__(self, leftOperand=None, operator=None, rightOperand=None, **args)
     def evaluate(self):
         pass
 
@@ -53,8 +63,9 @@ class ArithmeticConstraint(Constraint):
             return False
 
 class LogicalConstraint(Constraint):
-    def __init__(self, operator):
-        self.operator = operator
+    def __init__(self, **args):
+
+        super().__init__(**args)
 
     def check_constraint(self, value):
         if self.operator == 'or':
