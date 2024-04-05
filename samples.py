@@ -1,8 +1,75 @@
 from Parsers import ODRLParser
+from PolicyEnforcement import PolicyEnforcement
+from ontology import *
+
 odrl = ODRLParser()
-policy = odrl.parse("./examples/policy.odrl")
+policies = odrl.parse_file("./examples/policy.odrl")
 
 # ----------------------------  SAMPLE CLASS USE ----------------------------------#
+
+file_path = "./examples/request.odrl"
+
+odrl = ODRLParser()
+req = odrl.parse_file(file_path)
+
+
+conjunction = "∧"
+disjunction = "∨"
+actionTypes = get_actions_from_odrl()
+actorTypes = get_actors_from_dpv()
+purposeTypes = get_purposes_from_dpv()
+
+print("----------------------------ACTOR-----------------------")
+for a in actorTypes:
+    print(a)
+
+print("----------------------------ACTION-----------------------")
+for a in actionTypes:
+    print(a)
+
+print("----------------------------purpose-----------------------")
+for a in purposeTypes:
+    print(a)
+
+def check(i,list):
+    for a in list:
+        if a["label"].lower() == i.lower() or a["uri"].lower() == i.lower():
+            return True
+def get(i, list):
+    for a in list:
+        if a["label"].lower() == i.lower() or a["uri"].lower() == i.lower():
+            return a["label"].replace(" ","")
+
+def extract_logic_expressions():
+
+    policies = odrl.parse_file("./Examples/consent.odrl")
+    logic_expression = ""
+    logic_op = conjunction
+    y = 0
+    for p in policies:
+        for proh in p.prohibition:
+            if check(proh.target, actorTypes):
+                function_name = get(proh.target, actorTypes)
+                logic_expression += f"hasActor (x,y{y}) {logic_op} {function_name} (y{y}) {logic_op} "
+                y += 1
+            if check(proh.action, actionTypes):
+                function_name = get(proh.action, actionTypes)
+                logic_expression += f"hasAction (x,y{y}) {logic_op} {function_name} (y{y}) {logic_op} "
+                y += 1
+            for c in proh.constraint:
+                if check(c.rightOperand, purposeTypes):
+                    function_name = get(c.rightOperand, purposeTypes)
+                    logic_expression += f"hasPurpose (x,y{y}) {logic_op} {function_name} (y{y}) {logic_op} "
+                    y += 1
+    logic_expression = logic_expression [:-2]
+
+extract_logic_expressions()
+
+
+pe = PolicyEnforcement(policies)
+for r in req:
+    print(pe.check_permission(r.permission))
+
 
 from Constraint import ArithmeticConstraint
 from Policy import Rule, Permission, Prohibition, Duty, Policy

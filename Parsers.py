@@ -17,7 +17,7 @@ class PolicyObject:
 
 class ODRLParser:
 
-    def parse(self,file_name):
+    def parse_file(self,file_name):
         if file_name is not None:
             file_name = file_name
         with open(file_name, 'r') as file:
@@ -25,8 +25,21 @@ class ODRLParser:
 
         # with open(file_name, 'r') as file:
         #     parsed_policy_object = json.load(file,object_hook = lambda d: Policy(**d))
+        list_of_policies = []
+        for p in parsed_policy:
+            list_of_policies.append(self.parse(p))
 
-        objects = {}
+        return list_of_policies
+
+
+    def parse_list(self,parsed_policy):
+        list_of_policies = []
+        for p in parsed_policy:
+            list_of_policies.append(self.parse(p))
+
+        return list_of_policies
+
+    def parse(self,parsed_policy):
         policy = Policy(parsed_policy["uid"], parsed_policy["@type"])
         for key, value in parsed_policy.items():
             if key == "prohibition":

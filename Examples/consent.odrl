@@ -1,0 +1,34 @@
+[{
+  "uid": "http://example.com/policy:001",
+  "@type": "Policy",
+  "profile": "http://example.com/odrl:profile:10",
+  "prohibition": [
+    {
+      "target": "https://w3id.org/dpv/dpv-owl#Recipient",
+      "action": "aggregate",
+      "constraint": [{
+            "leftOperand": "purpose",
+            "operator": "eq",
+            "rightOperand": "https://w3id.org/dpv/dpv-owl#ResearchAndDevelopment"
+          }]
+    },
+    {
+      "target": "https://w3id.org/dpv/dpv-owl#Student",
+      "action": "http://www.w3.org/ns/odrl/2/anonymize",
+      "constraint": [{
+            "leftOperand": "purpose",
+            "operator": "eq",
+            "rightOperand": "Marketing"
+          }]
+    },
+    {
+      "target": "Child",
+      "action": "Delete",
+      "constraint": [{
+            "leftOperand": "purpose",
+            "operator": "eq",
+            "rightOperand": "https://w3id.org/dpv/dpv-owl#HumanResourceManagement"
+          }]
+    }
+    ]
+}]

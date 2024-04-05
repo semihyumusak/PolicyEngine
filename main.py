@@ -10,14 +10,46 @@ Contributors:
 from flask import Flask, request, jsonify
 from Constraint import Constraint
 from Parsers import ODRLParser
-
+from PolicyEnforcement import PolicyEnforcement
+from ontology import *
+from logic import extract_logic_expressions as logic_expr
 app = Flask(__name__)
 
 # Assuming 'policy.odrl' is the file path
 file_path = "./examples/policy.odrl"
 
 odrl = ODRLParser()
-policy = odrl.parse(file_path)
+policies = odrl.parse_file(file_path)
+
+@app.route('/', methods=['GET'])
+def index():
+    # Read the content of the HTML file
+    with open('logic.html', 'r') as file:
+        html_content = file.read()
+    return html_content
+@app.route('/evaluate_odrl', methods=['POST'])
+def evaluate_odrl():
+    data = request.json
+    incoming_request = odrl.parse(data)
+
+    for p in policies:
+        pe = PolicyEnforcement(p)
+        return pe.enforce_policy(incoming_request)
+
+    pe = PolicyEnforcement(policies)
+    for r in incoming_request:
+        for perm in r.permission:
+            print(pe.check_permission(perm))
+
+conjunction = "∧"
+disjunction = "∨"
+@app.route('/extract_logic_expressions', methods=['POST'])
+def extract_logic_expressions():
+
+    incoming_request = odrl.parse_list(request.json)
+    print (incoming_request)
+    return jsonify({"expression": logic_expr(incoming_request)})
+
 
 @app.route('/evaluate', methods=['POST'])
 def evaluate():
@@ -61,5 +93,6 @@ def evaluate():
 
     return jsonify({"allowed": allowed, "reason": reason})
 
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port="8080")

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Extract Logic Expressions</title>
+</head>
+<body>
+  <h1>Extract Logic Expressions</h1>
+
+  <form id="extractForm">
+    <textarea id="inputText" rows="20" cols="100" placeholder="Enter odrl content">
+[{
+  "uid": "http://example.com/policy:001",
+  "@type": "Policy",
+  "profile": "http://example.com/odrl:profile:10",
+  "prohibition": [
+    {
+      "target": "https://w3id.org/dpv/dpv-owl#Recipient",
+      "action": "aggregate",
+      "constraint": [{
+            "leftOperand": "purpose",
+            "operator": "eq",
+            "rightOperand": "https://w3id.org/dpv/dpv-owl#ResearchAndDevelopment"
+          }]
+    },
+    {
+      "target": "https://w3id.org/dpv/dpv-owl#Student",
+      "action": "http://www.w3.org/ns/odrl/2/anonymize",
+      "constraint": [{
+            "leftOperand": "purpose",
+            "operator": "eq",
+            "rightOperand": "Marketing"
+          }]
+    },
+    {
+      "target": "Child",
+      "action": "Delete",
+      "constraint": [{
+            "leftOperand": "purpose",
+            "operator": "eq",
+            "rightOperand": "https://w3id.org/dpv/dpv-owl#HumanResourceManagement"
+          }]
+    }
+    ]
+}]
+
+    </textarea>
+    <br>
+    <button type="button" onclick="extractLogicExpressions()">Extract Logic Expressions</button>
+  </form>
+
+  <h2>Result</h2>
+
+  <textarea id="resultText" rows="5" cols="100" readonly></textarea>
+
+  <script>
+    function extractLogicExpressions() {
+      var inputText = document.getElementById("inputText").value;
+
+      fetch('http://62.171.168.208:8080/extract_logic_expressions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: inputText // Assuming inputText is already a valid JSON string
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById("resultText").value = data.expression;
+      })
+      .catch(error => console.error('Error:', error));
+    }
+  </script>
+</body>
+</html>
