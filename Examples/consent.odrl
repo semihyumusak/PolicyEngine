@@ -4,7 +4,9 @@
   "profile": "http://example.com/odrl:profile:10",
   "prohibition": [
     {
-      "target": "https://w3id.org/dpv/dpv-owl#Recipient",
+      "target": "q(x1,x3) <-- Table1(x1,'u8',x3,x4), Table2(x4,x5,x6)",
+      "uid": "http://example.com/rule:001",
+      "assignee":  "https://w3id.org/dpv/dpv-owl#Employee",
       "action": "aggregate",
       "constraint": [{
             "leftOperand": "purpose",
@@ -13,21 +15,14 @@
           }]
     },
     {
-      "target": "https://w3id.org/dpv/dpv-owl#Student",
-      "action": "http://www.w3.org/ns/odrl/2/anonymize",
+      "target": "q(x2,x4) <-- Table1(x2,'r8',x3,x4), Table2(x4,x5,x6), Table3(x4,x7)",
+      "uid": "http://example.com/rule:002",
+      "assignee":  "https://w3id.org/dpv/dpv-owl#Employee",
+      "action": "aggregate",
       "constraint": [{
             "leftOperand": "purpose",
             "operator": "eq",
-            "rightOperand": "Marketing"
-          }]
-    },
-    {
-      "target": "Child",
-      "action": "Delete",
-      "constraint": [{
-            "leftOperand": "purpose",
-            "operator": "eq",
-            "rightOperand": "https://w3id.org/dpv/dpv-owl#HumanResourceManagement"
+            "rightOperand": "https://w3id.org/dpv/dpv-owl#ResearchAndDevelopment"
           }]
     }
     ]

@@ -48,7 +48,8 @@ def extract_logic_expressions():
 
     incoming_request = odrl.parse_list(request.json)
     print (incoming_request)
-    return jsonify({"expression": logic_expr(incoming_request)})
+    result = logic_expr(incoming_request)
+    return result
 
 
 @app.route('/evaluate', methods=['POST'])
