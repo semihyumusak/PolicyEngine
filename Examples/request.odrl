@@ -1,4 +1,4 @@
-{
+[{
   "uid": "http://example.com/policy:001",
   "@type": "Policy",
   "profile": "http://example.com/odrl:profile:10",
@@ -37,7 +37,7 @@
        "target": "http://example.com/document:1234",
        "assigner": "http://example.com/org:616",
        "action": [{
-          "rdf:value": { "@id": "odrl:print" },
+          "rdf:value": { "@id": "odrl:print" }
       }]
   }]
-}
+}]
