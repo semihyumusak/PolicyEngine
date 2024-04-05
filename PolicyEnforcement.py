@@ -8,7 +8,27 @@ class PolicyEnforcement:
     def __init__(self, policies: List[Policy]):
         self.policies = policies
 
-    def check_permission(self, action: str, target: str, assigner: str, assignee: str = None) -> bool:
+
+    def check_permission(self, permission_list:List[Permission]) -> bool:
+        """
+        Checks if the given action is permitted according to any of the policies.
+
+        :param action: The action to be checked.
+        :param target: The target of the action.
+        :param assigner: The entity attempting the action.
+        :param assignee: Optional; the entity to whom the action is assigned.
+        :return: True if the action is permitted, False otherwise.
+        """
+        results = []
+        for perm in permission_list:
+            for policy in self.policies:
+                for permission in policy.permission:
+                    if permission.target == perm.target and permission.assigner == perm.assigner:
+                        if perm.assignee is None or permission.assignee == perm.assignee:
+                            if permission.action == perm.action:
+                                return (policy.uid, True)
+        return (policy.uid, False)
+    def check_permission_(self, action: str, target: str, assigner: str, assignee: str = None) -> bool:
         """
         Checks if the given action is permitted according to any of the policies.
 
@@ -58,6 +78,23 @@ class PolicyEnforcement:
         if self.check_permission(action, target, assigner, assignee):
             return "Permitted"
         elif self.check_prohibition(action, target, assigner, assignee):
+            return "Prohibited"
+        else:
+            return None
+
+    def enforce_policy(self, policy:Policy):
+        """
+        Enforces the policies by checking if the given action is permitted, prohibited, or neither.
+
+        :param action: The action to be checked.
+        :param target: The target of the action.
+        :param assigner: The entity attempting the action.
+        :param assignee: Optional; the entity to whom the action is assigned.
+        :return: "Permitted" if the action is permitted, "Prohibited" if the action is prohibited, None otherwise.
+        """
+        if self.check_permission(policy.permission.action, policy.permission.target, policy.permission.assigner, policy.permission.assignee):
+            return "Permitted"
+        elif self.check_prohibition(policy.permission.action, policy.permission.target, policy.permission.assigner, policy.permission.assignee):
             return "Prohibited"
         else:
             return None
