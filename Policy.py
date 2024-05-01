@@ -8,10 +8,10 @@ Contributors:
 """
 from typing import Union, Optional
 
-from Refinables import Action
-from Refinables import AssetCollection
-from Refinables import PartyCollection
-from Constraint import Constraint
+from .Refinables import Action
+from .Refinables import AssetCollection
+from .Refinables import PartyCollection
+from .Constraint import Constraint
 
 class Rule:
     def __init__(self, action: Action = None, target: AssetCollection = None, assigner: Union[PartyCollection, None] = None, assignee: Union[PartyCollection, None] = None, constraint: list[Union[Constraint, 'LogicalConstraint']] = None, uid: str = None):

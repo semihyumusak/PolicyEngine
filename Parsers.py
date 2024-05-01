@@ -7,7 +7,7 @@ Contributors:
 
 """
 import json
-from Policy import Policy, Rule, Permission, Obligation, Duty, Prohibition
+from .Policy import Policy, Rule, Permission, Obligation, Duty, Prohibition
 
 class PolicyObject:
     def __init__(self, **kwargs):
@@ -34,6 +34,8 @@ class ODRLParser:
 
     def parse_list(self,parsed_policy):
         list_of_policies = []
+        if isinstance(parsed_policy, str):
+            parsed_policy = json.loads(parsed_policy)
         for p in parsed_policy:
             list_of_policies.append(self.parse(p))
 

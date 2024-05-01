@@ -1,7 +1,7 @@
 import re
-from Parsers import ODRLParser
-from PolicyEnforcement import PolicyEnforcement
-from ontology import *
+from .Parsers import ODRLParser
+from .PolicyEnforcement import PolicyEnforcement
+from .ontology import *
 
 odrl = ODRLParser()
 
@@ -21,15 +21,18 @@ def get(i, list):
 
 def extract_logic_expressions_from_file(file = "./Examples/consent.odrl"):
     policies = odrl.parse_file(file)
-    return extract_logic_expressions(policies)
-def extract_logic_expressions(policies):
+    return extract_logic(policies)
+def extract_logic(policies):
     logic_expression = ""
     logic_op = conjunction
     y = 0
     for p in policies:
         results = []
+        i = 1
         for proh in p.prohibition:
-            id = f"\"{proh.uid.split(':')[2]}\""
+            id = f"P{i}"
+            i += 1
+#            id = f"\"{p.uid.split(':')[2]}\""
             query = proh.target
             query_parts = query.split("<--")
             target = query_parts[0].split("(")[1].replace(")","")

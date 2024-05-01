@@ -1,8 +1,8 @@
 from rdflib import Graph, Namespace
 
 
-dpv_file_path = "./ontology/dpv.rdf"
-odrl_file_path = "./ontology/ODRL22.rdf"
+dpv_file_path = "./priv_ui/PolicyEngine/ontology/dpv.rdf"
+odrl_file_path = "./priv_ui/PolicyEngine/ontology/ODRL22.rdf"
 
 def get_rules_from_odrl():
     ttl_file_path = odrl_file_path

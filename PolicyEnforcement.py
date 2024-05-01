@@ -1,7 +1,7 @@
 from typing import List, Union
 from datetime import datetime
 
-from Policy import Policy, Permission, Prohibition, Obligation, Duty
+from .Policy import Policy, Permission, Prohibition, Obligation, Duty
 
 
 class PolicyEnforcement:

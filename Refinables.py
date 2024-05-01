@@ -9,8 +9,8 @@ Contributors:
 
 from typing import List
 
-from Constraint import Constraint
-from Interfaces import RefinableInterface
+from .Constraint import Constraint
+from .Interfaces import RefinableInterface
 
 class Refinable(RefinableInterface):
     def __init__(self,  **args):
