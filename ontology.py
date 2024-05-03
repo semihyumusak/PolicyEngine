@@ -1,8 +1,10 @@
+import os
+
 from rdflib import Graph, Namespace
 
-
-dpv_file_path = "./priv_ui/PolicyEngine/ontology/dpv.rdf"
-odrl_file_path = "./priv_ui/PolicyEngine/ontology/ODRL22.rdf"
+current_folder_path = os.getcwd()
+dpv_file_path = current_folder_path  + "/PolicyEngine/ontology/dpv.rdf"
+odrl_file_path =  current_folder_path  + "/PolicyEngine/ontology/ODRL22.rdf"
 
 def get_rules_from_odrl():
     ttl_file_path = odrl_file_path
@@ -118,8 +120,6 @@ def get_constraints_types_from_odrl():
     ]
 
     return result_list
-
-
 
 def get_actions_from_odrl():
     ttl_file_path = odrl_file_path
