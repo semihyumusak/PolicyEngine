@@ -64,13 +64,17 @@ class ArithmeticConstraint(Constraint):
 
 class LogicalConstraint(Constraint):
     def __init__(self, **args):
+        self.logic_and = args.get("and", None)
+        self.logic_or = args.get("or", None)
+        self.logic_xone = args.get("xone", None)
+        self.logic_andSequence = args.get("andSequence", None)
 
-        super().__init__(**args)
+        #super().__init__(**args)
 
     def check_constraint(self, value):
         if self.operator == 'or':
             return any(constraint.check_constraint(None, value) for constraint in self.constraints)
-        elif self.operator == 'xone':
+        elif self.operator == '':
             return sum(constraint.check_constraint(None, value) for constraint in self.constraints) == 1
         elif self.operator == 'and':
             return all(constraint.check_constraint(None, value) for constraint in self.constraints)
