@@ -28,7 +28,7 @@ class Rule:
 
         if isinstance(action, dict):
             self.action = [Action(**action)]
-        if isinstance(action, list):
+        elif isinstance(action, list):
             self.action = [Action(**c) for c in action]
         else:
             self.action = action
