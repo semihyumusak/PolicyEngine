@@ -4,7 +4,7 @@ from enum import Enum
 from pydantic import BaseModel, Field, validator
 
 from fastapi import FastAPI, HTTPException, Header, Body
-from typing import List, Dict
+from typing import List, Dict, Optional
 from enum import Enum
 from pydantic import BaseModel, Field
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -17,7 +17,7 @@ app = FastAPI(
 )
 
 
-class NegotiationStatus(Enum):
+class NegotiationStatus(str, Enum):
     AGREED = 'agreed'
     ACCEPTED = 'accepted'
     VERIFIED = 'verified'
@@ -26,11 +26,11 @@ class NegotiationStatus(Enum):
     REQUESTED = 'requested'
     OFFERED = 'offered'
 
-class PolicyType(Enum):
+class PolicyType(str, Enum):
     OFFER = 'offer'
     REQUEST = 'request'
 
-class PartyType(Enum):
+class PartyType(str, Enum):
     CONSUMER = 'consumer'
     PRODUCES = 'producer'
 
@@ -43,32 +43,32 @@ class UpcastResourceDescriptionObject(BaseModel):
 
 
 class UpcastRequestObject(BaseModel):
-    id: str
+    id: Optional[str] = None
     type: PolicyType
-    consumer_id: str
+    consumer_id: Optional[str] = None
     producer_id: str
     data_processing_workflow_object: Dict
     natural_language_document: str
     resource_description_object: UpcastResourceDescriptionObject
     odrl_policy: Dict
 
-    negotiation_id: str
+    negotiation_id: Optional[str] = None
 
 
 class UpcastOfferObject(BaseModel):
-    id: str
+    id: Optional[str] = None
     type: PolicyType
     consumer_id: str
-    producer_id: str
+    producer_id: Optional[str] = None
     data_processing_workflow_object: Dict
     natural_language_document: str
     resource_description_object: UpcastResourceDescriptionObject
     odrl_policy: Dict
-    negotiation_id: str
+    negotiation_id: Optional[str] = None
 
 
 class UpcastNegotiationObject(BaseModel):
-    id: str
+    id: Optional[str] = None
     consumer_id: str
     producer_id: str
     negotiation_status: NegotiationStatus
@@ -83,7 +83,7 @@ class UpcastNegotiationObject(BaseModel):
 
 
 class UpcastContractObject(BaseModel):
-    id: str
+    id: Optional[str] = None
     corresponding_parties: Dict
     data_processing_workflow_object: Dict
     natural_language_document: str
@@ -120,7 +120,9 @@ async def create_upcast_negotiation(
         user_id: str = Header(..., description="The ID of the user"),
         body: UpcastRequestObject = Body(..., description="The request object")
 ):
-    negotiation_id = str(uuid.uuid4())  # Generate a unique negotiation ID
+    # Assign a new UUID if negotiation_id is None, in one line
+    negotiation_id = body.negotiation_id or str(uuid.uuid4())
+#    negotiation_id = str(uuid.uuid4())  # Generate a unique negotiation ID
     conflict_status = "no conflict"
 
     negotiation = UpcastNegotiationObject(
@@ -154,14 +156,6 @@ async def get_upcast_negotiation(
     raise HTTPException(status_code=404, detail="Negotiation not found")
 
 
-# @app.get("/negotiation/{negotiation_id}", summary="Get a negotiation", response_model=UpcastNegotiationObject)
-# async def get_upcast_negotiation(
-#     negotiation_id: str = Path(..., description="The ID of the negotiation"),
-#     user_id: str = Header(..., description="The ID of the user")
-# ):
-#     # TODO: Get the negotiation object from the database by querying with the negotiation id
-#
-#     return UpcastNegotiationObject()
 
 @app.get("/negotiation", summary="Get negotiations", response_model=List[UpcastNegotiationObject])
 async def get_upcast_negotiations(
@@ -173,14 +167,6 @@ async def get_upcast_negotiations(
     return [UpcastNegotiationObject(**negotiation) for negotiation in negotiations]
 
 
-# @app.get("/negotiation", summary="Get negotiations", response_model=List[UpcastNegotiationObject])
-# async def get_upcast_negotiations(
-#     user_id: str = Header(..., description="The ID of the user")
-# ):
-#     # TODO: Get all the negotiation objects from the database assigned to a particular user by querying with the user id and
-#
-#     negotiations_list = []
-#     return negotiations_list
 
 @app.put("/negotiation/{negotiation_id}", summary="Update a negotiation")
 async def update_upcast_negotiation(
@@ -201,15 +187,6 @@ async def update_upcast_negotiation(
 
     return {"message": "Negotiation updated successfully", "negotiation_id": negotiation_id}
 
-#
-# @app.put("/negotiation", summary="Update a negotiation")
-# async def update_upcast_negotiation(
-#     negotiation_id: str = Path(..., description="The ID of the negotiation"),
-#     user_id: str = Header(..., description="The ID of the user"),
-#     body: UpcastNegotiationObject = Body(..., description="The negotiation object")
-# ):
-#     negotiation_id = "generated-id"
-#     return {"message": "Negotiation updated successfully", "negotiation_id": negotiation_id}
 
 
 @app.delete("/negotiation/{negotiation_id}", summary="Delete a negotiation")
@@ -217,6 +194,7 @@ async def delete_upcast_negotiation(
     negotiation_id: str = Path(..., description="The ID of the negotiation"),
     user_id: str = Header(..., description="The ID of the user")
 ):
+    # Delete the negotiation
     delete_result = await negotiations_collection.delete_one(
         {"id": negotiation_id, "$or": [{"consumer_id": user_id}, {"producer_id": user_id}]}
     )
@@ -224,15 +202,14 @@ async def delete_upcast_negotiation(
     if delete_result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Negotiation not found or you do not have permission to delete this negotiation")
 
-    return {"message": "Negotiation deleted successfully", "negotiation_id": negotiation_id}
+    # Delete corresponding requests
+    await requests_collection.delete_many({"negotiation_id": negotiation_id})
 
-#
-# @app.delete("/negotiation", summary="Delete a negotiation")
-# async def delete_upcast_negotiation(
-#     negotiation_id: str = Path(..., description="The ID of the negotiation"),
-#     user_id: str = Header(..., description="The ID of the user")
-# ):
-#     return {"message": "Negotiation deleted successfully", "negotiation_id": negotiation_id}
+    # Delete corresponding offers
+    await offers_collection.delete_many({"negotiation_id": negotiation_id})
+
+    return {"message": "Negotiation and corresponding requests and offers deleted successfully", "negotiation_id": negotiation_id}
+
 
 @app.post("/negotiation/terminate/{negotiation_id}", summary="Terminate a negotiation")
 async def terminate_upcast_negotiation(
@@ -252,23 +229,16 @@ async def terminate_upcast_negotiation(
 
     return {"message": "Negotiation terminated successfully", "negotiation_id": negotiation_id}
 
-#
-# @app.post("/negotiation/terminate", summary="Terminate a negotiation")
-# async def terminate_upcast_negotiation(
-#     negotiation_id: str = Path(..., description="The ID of the negotiation"),
-#     user_id: str = Header(..., description="The ID of the user")
-# ):
-#     return {"message": "Negotiation terminated successfully", "negotiation_id": negotiation_id}
-
 
 @app.post("/consumer/request/new", summary="Create a new request")
 async def create_new_upcast_request(
     user_id: str = Header(..., description="The ID of the user"),
     body: UpcastRequestObject = Body(..., description="The request object")
 ):
-    request_id = str(uuid.uuid4())  # Generating a unique request ID
+    body.id = body.id or str(uuid.uuid4())
+    body.consumer_id = user_id
     await requests_collection.insert_one(body.dict())
-    return {"request_id": request_id}
+    return {"request_id": body.id}
 
 @app.get("/consumer/request/{request_id}", summary="Get an existing request", response_model=UpcastRequestObject)
 async def get_upcast_request(
@@ -320,58 +290,32 @@ async def send_upcast_request(
     return {"message": "Request sent successfully", "request_id": body.id, "negotiation_id": negotiation_id}
 
 
-@app.delete("/consumer/request/delete", summary="Delete a request for an existing negotiation")
+@app.delete("/request/{request_id}", summary="Delete a request")
 async def delete_upcast_request(
-    user_id: str = Header(..., description="The ID of the user"),
-    request_id: str = Header(..., description="The ID of the request")
+        request_id: str = Path(..., description="The ID of the request"),
+        user_id: str = Header(..., description="The ID of the user")
 ):
-    await requests_collection.delete_one({"id": request_id})
-    return {"message": "Request deleted successfully", "request_id": request_id}
+    # Find the request
+    request = await requests_collection.find_one({"id": request_id})
 
-#
-# @app.post("/consumer/request/new", summary="Create a new request")
-# async def create_new_upcast_request(
-#     user_id: str = Header(..., description="The ID of the user"),
-#     body: UpcastRequestObject = Body(..., description="The request object")
-# ):
-#     request_id = "generated-id"  # Placeholder for actual negotiation ID generation
-#     return {"request_id": request_id}
-#
-#
-# @app.get("/consumer/request/{request_id}", summary="Get an existing request", response_model=UpcastRequestObject)
-# async def get_upcast_request(
-#     user_id: str = Header(..., description="The ID of the user")
-# ):
-#     request_id = "generated-id"
-#     request = UpcastRequestObject(
-#         id=request_id
-#     )
-#     return request
-#
-#
-# @app.put("/consumer/request/update", summary="Update an existing request")
-# async def update_upcast_request(
-#     user_id: str = Header(..., description="The ID of the user"),
-#     body: UpcastRequestObject = Body(..., description="The request object")
-# ):
-#     return {"message": "Request updated successfully", "request_id": body.id}
-#
-#
-# @app.post("/consumer/request/send", summary="Send a request for an existing negotiation")
-# async def send_upcast_request(
-#     user_id: str = Header(..., description="The ID of the user"),
-#     negotiation_id: str = Header(..., description="The ID of the negotiation"),
-#     body: UpcastRequestObject = Body(..., description="The offer object")
-# ):
-#     return {"message": "Request sent successfully", "offer_id": body.id, "negotiation_id": body.id}
-#
-#
-# @app.delete("/consumer/request/delete", summary="Delete a request for an existing negotiation")
-# async def delete_upcast_request(
-#     user_id: str = Header(..., description="The ID of the user"),
-#     request_id: str = Header(..., description="The ID of the request")
-# ):
-#     return {"message": "Request deleted successfully", "request_id": request_id}
+    if not request:
+        raise HTTPException(status_code=404, detail="Request not found")
+
+    # Delete the request
+    delete_result = await requests_collection.delete_one({"id": request_id})
+
+    if delete_result.deleted_count == 0:
+        raise HTTPException(status_code=404,
+                            detail="Request not found or you do not have permission to delete this request")
+
+    # If the request is part of a negotiation, remove it from the negotiation's negotiations field
+    if request.get("negotiation_id"):
+        await negotiations_collection.update_one(
+            {"id": request["negotiation_id"]},
+            {"$pull": {"negotiations": {"id": request_id}}}
+        )
+
+    return {"message": "Request deleted successfully", "request_id": request_id}
 
 
 @app.post("/consumer/offer/accept", summary="Accept a request")
@@ -459,6 +403,25 @@ async def create_new_upcast_offer(
     # Save the offer to MongoDB
     await offers_collection.insert_one(body.dict())
 
+    return {"offer_id": offer_id}
+
+@app.post("/producer/offer/send", summary="Send a new offer")
+async def send_new_upcast_offer(
+        user_id: str = Header(..., description="The ID of the user"),
+        body: UpcastOfferObject = Body(..., description="The offer object")
+):
+    # Generate a unique offer ID
+    offer_id = str(uuid.uuid4())
+
+    # Change the policy type to "offer"
+    body.type = PolicyType.OFFER
+
+    # Add user_id to the offer object
+    body.producer_id = user_id
+
+    # Save the offer to MongoDB
+    await offers_collection.insert_one(body.dict())
+
     # Update the negotiations list under the existing negotiation with the negotiation ID
     negotiation_id = body.negotiation_id
     if negotiation_id:
@@ -497,43 +460,34 @@ async def get_upcast_offer(
 
     return UpcastOfferObject(**offer)
 
-#
-# @app.get("/producer/offer/{offer_id}", summary="Get an existing offer", response_model=UpcastOfferObject)
-# async def get_upcast_offer(
-#     user_id: str = Header(..., description="The ID of the user")
-# ):
-#     offer_id = "generated-id"
-#     offer = UpcastOfferObject(
-#         id=offer_id
-#     )
-#     return offer
 
-#
-# @app.put("/producer/offer/update", summary="Update an existing offer")
-# async def update_upcast_offer(
-#     user_id: str = Header(..., description="The ID of the user"),
-#     body: UpcastOfferObject = Body(..., description="The offer object")
-# ):
-#     return {"message": "Offer updated successfully", "offer_id": body.id}
-#
-#
-# @app.post("/producer/offer/send", summary="Send an offer for an existing negotiation")
-# async def send_upcast_offer(
-#     user_id: str = Header(..., description="The ID of the user"),
-#     negotiation_id: str = Header(..., description="The ID of the negotiation"),
-#     body: UpcastOfferObject = Body(..., description="The offer object")
-# ):
-#     return {"message": "Offer sent successfully", "offer_id": body.id, "negotiation_id": body.id}
+@app.delete("/offer/{offer_id}", summary="Delete an offer")
+async def delete_upcast_offer(
+        offer_id: str = Path(..., description="The ID of the offer"),
+        user_id: str = Header(..., description="The ID of the user")
+):
+    # Find the offer
+    offer = await offers_collection.find_one({"id": offer_id})
 
-#
-# @app.delete("/producer/offer/delete", summary="Delete an offer for an existing negotiation")
-# async def delete_upcast_offer(
-#     user_id: str = Header(..., description="The ID of the user"),
-#     offer_id: str = Header(..., description="The ID of the offer")
-# ):
-#     return {"message": "Offer deleted successfully", "offer_id": offer_id}
+    if not offer:
+        raise HTTPException(status_code=404, detail="Offer not found")
 
-from fastapi import HTTPException
+    # Delete the offer
+    delete_result = await offers_collection.delete_one({"id": offer_id})
+
+    if delete_result.deleted_count == 0:
+        raise HTTPException(status_code=404,
+                            detail="Offer not found or you do not have permission to delete this offer")
+
+    # If the offer is part of a negotiation, remove it from the negotiation's negotiations field
+    if offer.get("negotiation_id"):
+        await negotiations_collection.update_one(
+            {"id": offer["negotiation_id"]},
+            {"$pull": {"negotiations": {"id": offer_id}}}
+        )
+
+    return {"message": "Offer deleted successfully", "offer_id": offer_id}
+
 
 
 @app.post("/producer/request/agree", summary="Accept an request")
@@ -564,14 +518,6 @@ async def accept_upcast_offer(
         raise HTTPException(status_code=500, detail="Failed to update negotiation status")
 
     return {"message": "Request agreed successfully", "request_id": request_id}
-#
-#
-# @app.post("/producer/request/agree", summary="Accept an request")
-# async def accept_upcast_offer(
-#     user_id: str = Header(..., description="The ID of the user"),
-#     request_id: str = Header(..., description="The ID of the offer")
-# ):
-#     return {"message": "Request agreed successfully", "request_id": request_id}
 
 
 @app.post("/producer/offer/finalize", summary="Accept an offer")
@@ -612,23 +558,22 @@ async def finalize_upcast_offer(
 #     return {"message": "Offer finalized successfully", "offer_id": offer_id}
 
 
-
-@app.get("/contract/{negotiation_id}", summary="Get a contract")
+@app.get("/contract/{negotiation_id}", summary="Get a contract (Under Construction)")
 async def get_upcast_contract(
     negotiation_id: str = Path(..., description="The ID of the negotiation"),
     user_id: str = Header(..., description="The ID of the user")
 ):
-    # TODO
-    return {"agreed_contract_object": UpcastContractObject()}
+    # Under Construction
+    return {"message": "This endpoint is under construction"}
 
 
-@app.post("/contract/sign", summary="Sign a contract")
+@app.post("/contract/sign", summary="Sign a contract (Under Construction)")
 async def sign_upcast_contract(
     user_id: str = Header(..., description="The ID of the user"),
     body: UpcastContractObject = Body(..., description="The contract sign object")
 ):
-    # TODO
-    return {"message": "Contract signed successfully"}
+    # Under Construction
+    return {"message": "This endpoint is under construction"}
 
 
 if __name__ == "__main__":
