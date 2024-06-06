@@ -41,7 +41,6 @@ class UpcastResourceDescriptionObject(BaseModel):
     resource_description: Dict
 
 
-
 class UpcastRequestObject(BaseModel):
     id: Optional[str] = None
     type: PolicyType
@@ -51,7 +50,6 @@ class UpcastRequestObject(BaseModel):
     natural_language_document: str
     resource_description_object: UpcastResourceDescriptionObject
     odrl_policy: Dict
-
     negotiation_id: Optional[str] = None
 
 
@@ -77,7 +75,6 @@ class UpcastNegotiationObject(BaseModel):
     nlp: str  # Natural Language Part
     conflict_status: str  # Any detected conflict
     negotiations: List[Dict]  # List of UPCAST Request or UPCAST Offer
-
     class Config:
         use_enum_values = True  # Ensures the enum values are used instead of the enum type
 
@@ -175,7 +172,7 @@ async def update_upcast_negotiation(
     body: UpcastNegotiationObject = Body(..., description="The negotiation object")
 ):
     update_result = await negotiations_collection.update_one(
-        {"id": negotiation_id, "$or": [{"consumer_id": user_id}, {"producer_id": user_id}]},
+        {"id": negotiation_id},
         {"$set": pydantic_to_dict(body)}
     )
 
@@ -210,6 +207,23 @@ async def delete_upcast_negotiation(
 
     return {"message": "Negotiation and corresponding requests and offers deleted successfully", "negotiation_id": negotiation_id}
 
+
+# New endpoint
+@app.get("/negotiation/{negotiation_id}/last-policy", summary="Get the last policy", response_model=Dict)
+async def get_last_policy(
+        negotiation_id: str = Path(..., description="The ID of the negotiation"),
+        user_id: str = Header(..., description="The ID of the user")
+):
+    negotiation = await negotiations_collection.find_one({"id": negotiation_id, "$or": [{"consumer_id": user_id}, {"producer_id": user_id}]})
+    if not negotiation:
+        raise HTTPException(status_code=404, detail="Negotiation not found")
+
+    negotiations_list = negotiation.get("negotiations", [])
+    if not negotiations_list:
+        raise HTTPException(status_code=404, detail="No policies found in the negotiations")
+
+    last_policy = negotiations_list[-1]
+    return last_policy
 
 @app.post("/negotiation/terminate/{negotiation_id}", summary="Terminate a negotiation")
 async def terminate_upcast_negotiation(
@@ -290,7 +304,7 @@ async def send_upcast_request(
     return {"message": "Request sent successfully", "request_id": body.id, "negotiation_id": negotiation_id}
 
 
-@app.delete("/request/{request_id}", summary="Delete a request")
+@app.delete("/consumer/request/{request_id}", summary="Delete a request")
 async def delete_upcast_request(
         request_id: str = Path(..., description="The ID of the request"),
         user_id: str = Header(..., description="The ID of the user")
@@ -316,6 +330,25 @@ async def delete_upcast_request(
         )
 
     return {"message": "Request deleted successfully", "request_id": request_id}
+
+
+
+@app.get("/consumer/offer", summary="Get available offers", response_model=UpcastOfferObject)
+async def get_upcast_offers(
+        offer_id: str = Path(..., description="The ID of the offer"),
+        user_id: str = Header(..., description="The ID of the user")
+):
+    offers = await offers_collection.find({
+        "$or": [
+            {"negotiation_id": {"$exists": False}},
+            {"negotiation_id": ""}
+        ]
+    }).to_list(length=None)
+
+    if not offers:
+        raise HTTPException(status_code=404, detail="No offers found for this user")
+
+    return [UpcastOfferObject(**offer) for offer in offers]
 
 
 @app.post("/consumer/offer/accept", summary="Accept a request")
@@ -392,7 +425,7 @@ async def create_new_upcast_offer(
         body: UpcastOfferObject = Body(..., description="The offer object")
 ):
     # Generate a unique offer ID
-    offer_id = str(uuid.uuid4())
+    offer_id = body.id or str(uuid.uuid4())
 
     # Change the policy type to "offer"
     body.type = PolicyType.OFFER
@@ -490,7 +523,7 @@ async def delete_upcast_offer(
 
 
 
-@app.post("/producer/request/agree", summary="Accept an request")
+@app.post("/producer/request/agree", summary="Agree on a request")
 async def accept_upcast_offer(
         user_id: str = Header(..., description="The ID of the user"),
         request_id: str = Header(..., description="The ID of the request")
