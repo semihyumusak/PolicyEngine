@@ -296,7 +296,7 @@ async def terminate_upcast_negotiation(
     user_id: str = Header(..., description="The ID of the user")
 ):
     update_result = await negotiations_collection.update_one(
-        {"_id": ObjectId(negotiation_id), "$or": [{"consumer_id": ObjectId(user_id)}, {"producer_id": ObjectId(user_id)}]},
+        {"_id": ObjectId(negotiation_id)},#, "$or": [{"consumer_id": ObjectId(user_id)}, {"producer_id": ObjectId(user_id)}]},
         {"$set": {"negotiation_status": NegotiationStatus.TERMINATED.value}}
     )
 
