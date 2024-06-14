@@ -11,11 +11,26 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import uuid
 from datetime import datetime
 from bson import ObjectId
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Request
+
 
 app = FastAPI(
     title="Negotiation Plugin API",
     description="UPCAST Negotiation Plugin API",
     version="1.0",
+)
+
+origins = ["*,"
+    "http://localhost:8000",  # Adjust this to your frontend's address
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -50,15 +65,25 @@ class User(MongoObject):
     name: Optional[str] = None
     type: PartyType
 
-
-class UpcastResourceDescriptionObject(MongoObject):
-    name: Optional[str] = None
-    price: int
-    environmental_effect: str
-    resource_description: Dict
+class UpcastResourceDescriptionObject(BaseModel):
+    title: Optional[str] = None
+    price: float
+    price_unit: Optional[str] = None
+    uri: Optional[str] = None
+    policy_url: Optional[str] = None
+    environmental_cost_of_generation: Optional[Dict[str, str]] = None
+    environmental_cost_of_serving: Optional[Dict[str, str]] = None
+    description: Optional[str] = None
+    type_of_data: Optional[str] = None
+    data_format: Optional[str] = None
+    data_size: Optional[str] = None
+    geographic_scope: Optional[str] = None
+    tags: Optional[str] = None
+    publisher: Optional[str] = None
+    theme: Optional[list] = None
+    distribution: Optional[Dict[str, str]] = None
     created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
-
 
 class UpcastPolicyObject(MongoObject):
     name: Optional[str] = None
@@ -218,7 +243,7 @@ async def get_upcast_negotiations(
 
     # Retrieve negotiations where the user is either a consumer or a producer
     negotiations = await negotiations_collection.find(
-        {"$or": [{"consumer_id": user["_id"]}, {"producer_id": user["_id"]}]}
+        {"$or": [{"consumer_id": ObjectId(user["_id"])}, {"producer_id": ObjectId(user["_id"])}]}
     ).to_list(length=None)
 
     if not negotiations:
@@ -290,26 +315,6 @@ async def get_last_policy(
     last_policy = negotiations_list[-1]
     return pydantic_to_dict(request,True)
 
-@app.post("/negotiation/terminate/{negotiation_id}", summary="Terminate a negotiation")
-async def terminate_upcast_negotiation(
-    negotiation_id: str = Path(..., description="The ID of the negotiation"),
-    user_id: str = Header(..., description="The ID of the user")
-):
-    update_result = await negotiations_collection.update_one(
-        {"_id": ObjectId(negotiation_id)},#, "$or": [{"consumer_id": ObjectId(user_id)}, {"producer_id": ObjectId(user_id)}]},
-        {"$set": {"negotiation_status": NegotiationStatus.TERMINATED.value}}
-    )
-
-    if update_result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Negotiation not found or you do not have permission to terminate this negotiation")
-
-    if update_result.modified_count == 0:
-        raise HTTPException(status_code=400, detail="Negotiation termination failed")
-
-    return {"message": "Negotiation terminated successfully", "negotiation_id": negotiation_id}
-
-
-
 @app.post("/consumer/request/new", summary="Create a new request")
 async def create_new_upcast_request(
         user_id: str = Header(..., description="The ID of the user"),
@@ -319,7 +324,7 @@ async def create_new_upcast_request(
     body.type = PolicyType.REQUEST
 
     # Save the offer to MongoDB
-    result = await policy_collection.insert_one(body.dict())
+    result = await policy_collection.insert_one(pydantic_to_dict(body))
 
     # Retrieve the generated _id
     request_id = str(result.inserted_id)
@@ -327,8 +332,8 @@ async def create_new_upcast_request(
     body.type = PolicyType.REQUEST
     if not body.negotiation_id:  # If negotiation_id is empty, create a new negotiation
         negotiation = UpcastNegotiationObject(
-            consumer_id=body.consumer_id,
-            producer_id=body.producer_id,  # Assuming producer_id is available in the request object
+            consumer_id=ObjectId(body.consumer_id),
+            producer_id=ObjectId(body.producer_id),  # Assuming producer_id is available in the request object
             negotiation_status=NegotiationStatus.REQUESTED,
             resource_description=body.resource_description_object.dict(),
             dpw=body.data_processing_workflow_object,
@@ -336,7 +341,7 @@ async def create_new_upcast_request(
             conflict_status="",  # Initialize with an empty string
             negotiations=[ObjectId(request_id)]  # Add the request to negotiations list
         )
-        result = await negotiations_collection.insert_one(negotiation.dict())
+        result = await negotiations_collection.insert_one(pydantic_to_dict(negotiation))
         negotiation_id = result.inserted_id
 
         # Update the request object with the new negotiation_id
@@ -383,37 +388,8 @@ async def update_upcast_request(
     return {"message": "Request updated successfully", "request_id": body.id}
 
 
-    await policy_collection.replace_one({"_id": body.id}, body.dict())
+    await policy_collection.replace_one({"_id": body.id}, pydantic_to_dict(body))
     return {"message": "Request updated successfully", "request_id": body.id}
-
-
-@app.post("/consumer/request/send", summary="Send a request for an existing negotiation")
-async def send_upcast_request(
-    user_id: str = Header(..., description="The ID of the user"),
-    body: UpcastPolicyObject = Body(..., description="The offer object")
-):
-    body.type = PolicyType.REQUEST
-    if not body.negotiation_id:  # If negotiation_id is empty, create a new negotiation
-        negotiation = UpcastNegotiationObject(
-            consumer_id=body.consumer_id,
-            producer_id=body.producer_id,  # Assuming producer_id is available in the request object
-            negotiation_status=NegotiationStatus.REQUESTED,
-            resource_description=body.resource_description_object.dict(),
-            dpw=body.data_processing_workflow_object,
-            nlp=body.natural_language_document,
-            conflict_status="",  # Initialize with an empty string
-            negotiations=[ObjectId(body.id)]  # Add the request to negotiations list
-        )
-        result = await negotiations_collection.insert_one(negotiation.dict())
-        negotiation_id = result.inserted_id
-    else:
-        # Update existing negotiation by appending the request to negotiations list
-        await negotiations_collection.update_one(
-            {"_id": ObjectId(body.negotiation_id)},
-            {"$push": {"negotiations": ObjectId(body.id)}}
-        )
-        negotiation_id = body.negotiation_id
-    return {"message": "Request sent successfully", "request_id": body.id, "negotiation_id": str(negotiation_id)}
 
 
 @app.delete("/consumer/request/{request_id}", summary="Delete a request")
@@ -448,72 +424,13 @@ async def delete_upcast_request(
 async def get_upcast_offers(
         user_id: str = Header(..., description="The ID of the user")
 ):
-    offers = await policy_collection.find().to_list(length=None)
+    offers = await policy_collection.find({'type':'offer'}).to_list(length=None)
 
     if not offers:
         raise HTTPException(status_code=404, detail="No offers found")
 
     return [UpcastPolicyObject(**offer) for offer in offers]
 
-
-@app.post("/consumer/offer/accept", summary="Accept an offer")
-async def accept_upcast_request(
-        user_id: str = Header(..., description="The ID of the user"),
-        offer_id: str = Header(..., description="The ID of the offer")
-):
-    # Get the offer from the database
-    offer = await policy_collection.find_one({"_id": ObjectId(offer_id)})
-
-    if offer is None:
-        raise HTTPException(status_code=404, detail="Offer not found")
-
-    # Get the negotiation ID associated with the offer
-    negotiation_id = offer.get("negotiation_id")
-
-    if negotiation_id is None:
-        raise HTTPException(status_code=400, detail="Negotiation ID not found in the offer")
-
-    # Update the negotiation status to "accepted" in the database
-    update_result = await negotiations_collection.update_one(
-        {"_id": ObjectId(negotiation_id)},
-        {"$set": {"negotiation_status": NegotiationStatus.ACCEPTED.value}}
-    )
-
-    # # Check if the negotiation was updated successfully
-    # if update_result.modified_count == 0:
-    #     raise HTTPException(status_code=500, detail="Failed to update negotiation status")
-
-    return {"message": "Offer accepted successfully", "offer_id": offer_id, "negotiation_id": negotiation_id}
-
-
-@app.post("/consumer/offer/verify", summary="Verify a request")
-async def verify_upcast_request(
-        user_id: str = Header(..., description="The ID of the user"),
-        offer_id: str = Header(..., description="The ID of the request")
-):
-    # Get the offer from the database
-    offer = await policy_collection.find_one({"_id": ObjectId(offer_id)})
-
-    if offer is None:
-        raise HTTPException(status_code=404, detail="Offer not found")
-
-    # Get the negotiation ID associated with the offer
-    negotiation_id = offer.get("negotiation_id")
-
-    if negotiation_id is None:
-        raise HTTPException(status_code=400, detail="Negotiation ID not found in the offer")
-
-    # Update the negotiation status to "verified" in the database
-    update_result = await negotiations_collection.update_one(
-        {"_id": ObjectId(negotiation_id)},
-        {"$set": {"negotiation_status": NegotiationStatus.VERIFIED.value}}
-    )
-
-    # Check if the negotiation was updated successfully
-    if update_result.modified_count == 0:
-        raise HTTPException(status_code=500, detail="Failed to update negotiation status")
-
-    return {"message": "Offer verified successfully", "offer_id": offer_id, "negotiation_id": negotiation_id}
 
 
 
@@ -528,7 +445,7 @@ async def create_new_upcast_offer(
     body.type = PolicyType.OFFER
 
     # Save the offer to MongoDB
-    result = await policy_collection.insert_one(body.dict())
+    result = await policy_collection.insert_one(pydantic_to_dict(body))
 
     # Retrieve the generated _id
     offer_id = str(result.inserted_id)
@@ -554,34 +471,6 @@ async def create_new_upcast_offer(
 
     return {"message": "Offer sent successfully", "offer_id": str(offer_id), "negotiation_id": str(body.negotiation_id)}
 
-@app.post("/producer/offer/send", summary="Send a new offer")
-async def send_new_upcast_offer(
-        user_id: str = Header(..., description="The ID of the user"),
-        body: UpcastPolicyObject = Body(..., description="The offer object")
-):
-
-    # Change the policy type to "offer"
-    body.type = PolicyType.OFFER
-
-    # Add user_id to the offer object
-    body.producer_id = user_id
-
-    # Save the offer to MongoDB
-    await policy_collection.insert_one(body.dict())
-
-    # Update the negotiations list under the existing negotiation with the negotiation ID
-    negotiation_id = body.negotiation_id
-    if negotiation_id:
-        update_result = await negotiations_collection.update_one(
-            {"_id": negotiation_id},
-            {"$push": {"negotiations": body.dict()}}
-        )
-
-        # Check if the negotiation was updated successfully
-        if update_result.modified_count == 0:
-            raise HTTPException(status_code=500, detail="Failed to update negotiation with new offer")
-
-    return {"offer_id": offer_id}
 
 
 @app.get("/producer/offer/{offer_id}", summary="Get an existing offer", response_model=UpcastPolicyObject)
@@ -630,66 +519,6 @@ async def delete_upcast_offer(
     return {"message": "Offer deleted successfully", "offer_id": offer_object_id, "negotiation_id": str(offer["negotiation_id"])}
 
 
-
-@app.post("/producer/request/agree", summary="Agree on a request")
-async def accept_upcast_offer(
-        user_id: str = Header(..., description="The ID of the user"),
-        request_id: str = Header(..., description="The ID of the request")
-):
-    # Get the request from the database
-    request = await policy_collection.find_one({"_id": ObjectId(request_id)})
-
-    if request is None:
-        raise HTTPException(status_code=404, detail="Request not found")
-
-    # Get the negotiation ID associated with the request
-    negotiation_id = request.get("negotiation_id")
-
-    if negotiation_id is None:
-        raise HTTPException(status_code=400, detail="Negotiation ID not found in the request")
-
-    # Update the negotiation status to "agree" in the database
-    update_result = await negotiations_collection.update_one(
-        {"_id": ObjectId(negotiation_id)},
-        {"$set": {"negotiation_status": NegotiationStatus.AGREED.value}}
-    )
-
-    # # Check if the negotiation was updated successfully
-    # if update_result.modified_count == 0:
-    #     raise HTTPException(status_code=500, detail="Failed to update negotiation status")
-
-    return {"message": "Request agreed successfully", "request_id": request_id, "negotiation_id": str(negotiation_id)}
-
-
-@app.post("/producer/offer/finalize", summary="Accept an offer")
-async def finalize_upcast_offer(
-        user_id: str = Header(..., description="The ID of the user"),
-        offer_id: str = Header(..., description="The ID of the offer")
-):
-    # Get the offer from the database
-    offer = await policy_collection.find_one({"_id": ObjectId(offer_id)})
-
-    if offer is None:
-        raise HTTPException(status_code=404, detail="Offer not found")
-
-    # Get the negotiation ID associated with the offer
-    negotiation_id = offer.get("negotiation_id")
-
-    if negotiation_id is None:
-        raise HTTPException(status_code=400, detail="Negotiation ID not found in the offer")
-
-    # Update the negotiation status to "finalized" in the database
-    update_result = await negotiations_collection.update_one(
-        {"_id": ObjectId(negotiation_id)},
-        {"$set": {"negotiation_status": NegotiationStatus.FINALIZED.value}}
-    )
-
-    # # Check if the negotiation was updated successfully
-    # if update_result.modified_count == 0:
-    #     raise HTTPException(status_code=500, detail="Failed to update negotiation status")
-
-    return {"message": "Offer finalized successfully", "offer_id": offer_id, "negotiation_id": str(negotiation_id)}
-
 #
 # @app.post("/producer/offer/finalize", summary="Accept an offer")
 # async def accept_upcast_offer(
@@ -719,7 +548,7 @@ async def sign_upcast_contract(
 
 @app.post("/user/new", summary="Create a new user", response_model=User)
 async def create_user(user: User):
-    user_obj = await users_collection.insert_one(user.dict())
+    user_obj = await users_collection.insert_one(pydantic_to_dict(user))
     created_user = await users_collection.find_one({"_id": user_obj.inserted_id})
     if created_user is None:
         raise HTTPException(status_code=500, detail="Failed to create user")
@@ -739,11 +568,102 @@ async def get_all_users():
 
 @app.put("/user/{user_id}", summary="Update a user by ID", response_model=User)
 async def update_user(user_id: str, user: User):
-    await users_collection.update_one({"_id": ObjectId(user_id)}, {"$set": user.dict()})
+    await users_collection.update_one({"_id": ObjectId(user_id)}, {"$set": pydantic_to_dict(user)})
     updated_user = await users_collection.find_one({"_id": ObjectId(user_id)})
     if updated_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return User(**updated_user)
+
+
+async def get_negotiation_id(offer_id: str, negotiation_id: str):
+    if negotiation_id:
+        return negotiation_id
+
+    # Get the offer from the database
+    offer = await policy_collection.find_one({"_id": ObjectId(offer_id)})
+    if offer is None:
+        raise HTTPException(status_code=404, detail="Offer not found")
+
+    negotiation_id = offer.get("negotiation_id")
+    if negotiation_id is None:
+        raise HTTPException(status_code=400, detail="Negotiation ID not found in the offer")
+
+    return negotiation_id
+
+@app.post("/consumer/offer/accept/{negotiation_id}/{offer_id}", summary="Accept an offer")
+async def accept_upcast_request(
+        negotiation_id: str = Path(..., description="The ID of the negotiation"),
+        offer_id: str = Path(..., description="The ID of the offer"),
+        user_id: str = Header(None, description="The ID of the user")
+):
+    negotiation_id = await get_negotiation_id(offer_id, negotiation_id)
+
+    update_result = await negotiations_collection.update_one(
+        {"_id": ObjectId(negotiation_id)},
+        {"$set": {"negotiation_status": NegotiationStatus.ACCEPTED.value}}
+    )
+
+    return {"message": "Offer accepted successfully", "offer_id": offer_id, "negotiation_id": negotiation_id}
+
+@app.post("/consumer/offer/verify/{negotiation_id}/{offer_id}", summary="Verify a request")
+async def verify_upcast_request(
+        negotiation_id: str = Path(..., description="The ID of the negotiation"),
+        offer_id: str = Path(..., description="The ID of the request"),
+        user_id: str = Header(None, description="The ID of the user")
+):
+    negotiation_id = await get_negotiation_id(offer_id, negotiation_id)
+
+    update_result = await negotiations_collection.update_one(
+        {"_id": ObjectId(negotiation_id)},
+        {"$set": {"negotiation_status": NegotiationStatus.VERIFIED.value}}
+    )
+
+    return {"message": "Offer verified successfully", "offer_id": offer_id, "negotiation_id": negotiation_id}
+
+@app.post("/producer/request/agree/{negotiation_id}/{request_id}", summary="Agree on a request")
+async def accept_upcast_offer(
+        negotiation_id: str = Path(..., description="The ID of the negotiation"),
+        request_id: str = Path(..., description="The ID of the request"),
+        user_id: str = Header(None, description="The ID of the user")
+):
+    negotiation_id = await get_negotiation_id(request_id, negotiation_id)
+
+    update_result = await negotiations_collection.update_one(
+        {"_id": ObjectId(negotiation_id)},
+        {"$set": {"negotiation_status": NegotiationStatus.AGREED.value}}
+    )
+
+    return {"message": "Request agreed successfully", "request_id": request_id, "negotiation_id": str(negotiation_id)}
+
+@app.post("/producer/offer/finalize/{negotiation_id}/{offer_id}", summary="Accept an offer")
+async def finalize_upcast_offer(
+        negotiation_id: str = Path(..., description="The ID of the negotiation"),
+        offer_id: str = Path(..., description="The ID of the offer"),
+        user_id: str = Header(None, description="The ID of the user")
+):
+    negotiation_id = await get_negotiation_id(offer_id, negotiation_id)
+
+    update_result = await negotiations_collection.update_one(
+        {"_id": ObjectId(negotiation_id)},
+        {"$set": {"negotiation_status": NegotiationStatus.FINALIZED.value}}
+    )
+
+    return {"message": "Offer finalized successfully", "offer_id": offer_id, "negotiation_id": str(negotiation_id)}
+
+@app.post("/negotiation/terminate/{negotiation_id}", summary="Terminate a negotiation")
+async def terminate_upcast_negotiation(
+    negotiation_id: str = Path(..., description="The ID of the negotiation"),
+    user_id: str = Header(None, description="The ID of the user")
+):
+    update_result = await negotiations_collection.update_one(
+        {"_id": ObjectId(negotiation_id)},
+        {"$set": {"negotiation_status": NegotiationStatus.TERMINATED.value}}
+    )
+
+    if update_result['matched_count'] == 0:
+        raise HTTPException(status_code=404, detail="Negotiation not found or you do not have permission to terminate this negotiation")
+
+    return {"message": "Negotiation terminated successfully", "negotiation_id": negotiation_id}
 
 
 if __name__ == "__main__":
