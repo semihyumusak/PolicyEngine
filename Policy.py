@@ -25,17 +25,22 @@ class Rule:
         :param constraints: Optional list of Constraint or LogicalConstraint objects associated with the Rule.
         :param uid: Optional; the unique identifier of the Rule.
         """
-
-        if isinstance(action, dict):
-            self.action = [Action(**action)]
-        elif isinstance(action, list):
-            self.action = [Action(**c) for c in action]
-        else:
+        try:
+            if isinstance(action, dict):
+                self.action = [Action(**action)]
+            elif isinstance(action, list):
+                self.action = [Action(**c) for c in action]
+            else:
+                self.action = action
+        except:
             self.action = action
 
-        if isinstance(target, dict):
-            self.target = AssetCollection(**target)
-        else:
+        try:
+            if isinstance(target, dict):
+                self.target = AssetCollection(**target)
+            else:
+                self.target = target
+        except:
             self.target = target
 
         self.assigner = assigner

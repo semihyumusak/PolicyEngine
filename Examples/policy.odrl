@@ -26,7 +26,8 @@
     },
     {
         "target": "http://example.com/book/1999",
-        "assigner": "http://example.com/org/paisley-park",
+        "assigner": "http://example.com/user",
+        "assignee": "http://example.com/admin",
         "action": [{
            "rdf:value": { "@id": "odrl:reproduce" },
            "refinement": {
@@ -42,7 +43,8 @@
     {
        "target": "http://example.com/asset:3333",
        "action": "display",
-       "assigner": "http://example.com/party:0001"
+       "assigner": "http://example.com/user",
+       "assignee": "http://example.com/admin"
    },
    {
         "target": "http://example.com/looking-glass.ebook",
@@ -75,6 +77,8 @@
     {
       "target": "http://example.com/asset:123",
       "action": "write",
+      "assigner": "http://example.com/user",
+      "assignee": "http://example.com/admin",
       "constraint": {
         "leftOperand": "dateTime",
         "operator": "gte",

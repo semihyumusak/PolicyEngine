@@ -28,9 +28,9 @@ class Refinable(RefinableInterface):
         self.value = args.get("value", None)
         refinement = args.get("refinement", None)
         if isinstance(refinement, dict):
-            self.refinement = Action(**refinement)
+            self.refinement = Constraint(**refinement)
         elif isinstance(refinement, list):
-            self.refinement = [Action(**c) for c in refinement]
+            self.refinement = [Constraint(**c) for c in refinement]
         self.other = args
         # self.refinements = refinements if refinements is not None else []
 

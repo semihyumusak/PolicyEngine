@@ -4,7 +4,7 @@ from enum import Enum
 from pydantic import BaseModel, Field, validator, field_validator
 
 from fastapi import FastAPI, HTTPException, Header, Body
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from enum import Enum
 from pydantic import BaseModel, Field, root_validator
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -21,8 +21,10 @@ app = FastAPI(
     version="1.0",
 )
 
-origins = ["*,"
-    "http://localhost:8000",  # Adjust this to your frontend's address
+origins = ["*",
+           "http://127.0.0.1:8000",
+           "http://localhost:8000",
+           "http://62.171.168.208:8000" # Adjust this to your frontend's address
 ]
 
 app.add_middleware(
@@ -86,11 +88,11 @@ class UpcastResourceDescriptionObject(BaseModel):
     updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
 
 class UpcastPolicyObject(MongoObject):
-    name: Optional[str] = None
+    title: Optional[str] = None
     type: str  # Assuming PolicyType is a string for this example
     consumer_id: Optional[object]
     producer_id: object
-    data_processing_workflow_object: Dict
+    data_processing_workflow_object: List
     natural_language_document: str
     resource_description_object: UpcastResourceDescriptionObject
     odrl_policy: Dict
@@ -98,27 +100,15 @@ class UpcastPolicyObject(MongoObject):
     created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
 
-class UpcastOfferObject(MongoObject):
-    name: Optional[str] = None
-    type: str  # Assuming PolicyType is a string for this example
-    consumer_id: Optional[object]
-    producer_id: object
-    data_processing_workflow_object: Dict
-    natural_language_document: str
-    resource_description_object: UpcastResourceDescriptionObject
-    odrl_policy: Dict
-    negotiation_id: Optional[object] = None
-    created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
-    updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
 
 
 class UpcastNegotiationObject(MongoObject):
-    name: Optional[str] = None
+    title: Optional[str] = None
     consumer_id: object
     producer_id: object
     negotiation_status: str  # Assuming NegotiationStatus is a string for this example
     resource_description: Dict
-    dpw: Dict  # Data Process Workflow
+    dpw: List  # Data Process Workflow
     nlp: str  # Natural Language Part
     conflict_status: str  # Any detected conflict
     negotiations: List[object]  # List of UPCAST Request or UPCAST Offer
@@ -129,21 +119,9 @@ class UpcastNegotiationObject(MongoObject):
         use_enum_values = True  # Ensures the enum values are used instead of the enum type
 
 
-class UpcastRequestObject(MongoObject):
-    name: Optional[str] = None
-    type: str  # Assuming PolicyType is a string for this example
-    consumer_id: object
-    producer_id: object
-    data_processing_workflow_object: Dict
-    natural_language_document: str
-    resource_description_object: UpcastResourceDescriptionObject
-    odrl_policy: Dict
-    negotiation_id: Optional[object] = None
-    created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
-    updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
 
 class UpcastContractObject(MongoObject):
-    name: Optional[str] = None
+    title: Optional[str] = None
     corresponding_parties: Dict
     data_processing_workflow_object: Dict
     natural_language_document: str
@@ -231,7 +209,6 @@ async def get_upcast_negotiation(
 
     raise HTTPException(status_code=404, detail="Negotiation not found")
 
-
 @app.get("/negotiation", summary="Get negotiations", response_model=List[UpcastNegotiationObject])
 async def get_upcast_negotiations(
     user_id: str = Header(..., description="The ID of the user")
@@ -247,10 +224,10 @@ async def get_upcast_negotiations(
     ).to_list(length=None)
 
     if not negotiations:
-        raise HTTPException(status_code=404, detail="No negotiations found for this user")
+        return []
+        # raise HTTPException(status_code=404, detail="No negotiations found for this user")
 
     return [UpcastNegotiationObject(**pydantic_to_dict(negotiation, True)) for negotiation in negotiations]
-
 
 @app.put("/negotiation", summary="Update a negotiation")
 async def update_upcast_negotiation(
@@ -315,6 +292,68 @@ async def get_last_policy(
     last_policy = negotiations_list[-1]
     return pydantic_to_dict(request,True)
 
+
+
+# Recursive function to find changes in nested dictionaries
+def find_changes(old: Dict[str, Any], new: Dict[str, Any]) -> Dict[str, Any]:
+    changes = {}
+    for key in new:
+        if key in old:
+            if isinstance(new[key], dict) and isinstance(old[key], dict):
+                sub_changes = find_changes(old[key], new[key])
+                if sub_changes:
+                    changes[key] = sub_changes
+            elif new[key] != old[key]:
+                changes[key] = {"from": old[key], "to": new[key]}
+        else:
+            changes[key] = {"from": None, "to": new[key]}
+    for key in old:
+        if key not in new:
+            changes[key] = {"from": old[key], "to": None}
+    return changes
+
+
+# Endpoint to get the last policy and the changes between the last two policies
+@app.get("/negotiation/{negotiation_id}/last-policy-diff", summary="Get the last policy", response_model=Dict[str, Any])
+async def get_last_policy(
+        negotiation_id: str = Path(..., description="The ID of the negotiation"),
+        user_id: str = Header(..., description="The ID of the user")
+):
+    negotiation = await negotiations_collection.find_one(
+        {"_id": ObjectId(negotiation_id), "$or": [{"consumer_id": ObjectId(user_id)}, {"producer_id": ObjectId(user_id)}]}
+    )
+    if not negotiation:
+        raise HTTPException(status_code=404, detail="Negotiation not found")
+
+    negotiations_list = negotiation.get("negotiations", [])
+    if not negotiations_list:
+        raise HTTPException(status_code=404, detail="No policies found in the negotiations")
+
+    last_policy_id = negotiations_list[-1]
+    last_policy = await policy_collection.find_one({"_id": ObjectId(last_policy_id)})
+
+    if len(negotiations_list) < 2:
+        second_last_policy = {}
+    else:
+        second_last_policy_id = negotiations_list[-2]
+        second_last_policy = await policy_collection.find_one({"_id": ObjectId(second_last_policy_id)})
+
+    if not last_policy:
+        raise HTTPException(status_code=404, detail="Last policy not found")
+
+    last_policy_dict = pydantic_to_dict(last_policy, True)
+    second_last_policy_dict = pydantic_to_dict(second_last_policy, True) if second_last_policy else {}
+
+    # Calculate the changes between the last two policies
+    changes = find_changes(second_last_policy_dict, last_policy_dict)
+
+    result = {
+        "last_policy": last_policy_dict,
+        "changes": changes
+    }
+
+    return result
+
 @app.post("/consumer/request/new", summary="Create a new request")
 async def create_new_upcast_request(
         user_id: str = Header(..., description="The ID of the user"),
@@ -332,6 +371,7 @@ async def create_new_upcast_request(
     body.type = PolicyType.REQUEST
     if not body.negotiation_id:  # If negotiation_id is empty, create a new negotiation
         negotiation = UpcastNegotiationObject(
+            title = body.title,
             consumer_id=ObjectId(body.consumer_id),
             producer_id=ObjectId(body.producer_id),  # Assuming producer_id is available in the request object
             negotiation_status=NegotiationStatus.REQUESTED,
@@ -590,65 +630,64 @@ async def get_negotiation_id(offer_id: str, negotiation_id: str):
 
     return negotiation_id
 
-@app.post("/consumer/offer/accept/{negotiation_id}/{offer_id}", summary="Accept an offer")
+@app.post("/consumer/offer/accept/{negotiation_id}", summary="Accept an offer")
 async def accept_upcast_request(
         negotiation_id: str = Path(..., description="The ID of the negotiation"),
-        offer_id: str = Path(..., description="The ID of the offer"),
+        # offer_id: str = Path(..., description="The ID of the offer"),
         user_id: str = Header(None, description="The ID of the user")
 ):
-    negotiation_id = await get_negotiation_id(offer_id, negotiation_id)
+    # negotiation_id = await get_negotiation_id(offer_id, negotiation_id)
 
     update_result = await negotiations_collection.update_one(
         {"_id": ObjectId(negotiation_id)},
         {"$set": {"negotiation_status": NegotiationStatus.ACCEPTED.value}}
     )
 
-    return {"message": "Offer accepted successfully", "offer_id": offer_id, "negotiation_id": negotiation_id}
+    return {"message" : "Offer accepted successfully", "negotiation_id" : negotiation_id, "negotiation_status" : NegotiationStatus.ACCEPTED.value}
 
-@app.post("/consumer/offer/verify/{negotiation_id}/{offer_id}", summary="Verify a request")
+@app.post("/consumer/offer/verify/{negotiation_id}", summary="Verify a request")
 async def verify_upcast_request(
         negotiation_id: str = Path(..., description="The ID of the negotiation"),
-        offer_id: str = Path(..., description="The ID of the request"),
+        # offer_id: str = Path(..., description="The ID of the request"),
         user_id: str = Header(None, description="The ID of the user")
 ):
-    negotiation_id = await get_negotiation_id(offer_id, negotiation_id)
+    # negotiation_id = await get_negotiation_id(offer_id, negotiation_id)
 
     update_result = await negotiations_collection.update_one(
         {"_id": ObjectId(negotiation_id)},
         {"$set": {"negotiation_status": NegotiationStatus.VERIFIED.value}}
     )
 
-    return {"message": "Offer verified successfully", "offer_id": offer_id, "negotiation_id": negotiation_id}
+    return {"message" : "Offer verified successfully", "negotiation_id" : negotiation_id, "negotiation_status" : NegotiationStatus.VERIFIED.value}
 
-@app.post("/producer/request/agree/{negotiation_id}/{request_id}", summary="Agree on a request")
-async def accept_upcast_offer(
+@app.post("/producer/request/agree/{negotiation_id}", summary = "Agree on a request")
+async def agree_upcast_offer(
         negotiation_id: str = Path(..., description="The ID of the negotiation"),
-        request_id: str = Path(..., description="The ID of the request"),
         user_id: str = Header(None, description="The ID of the user")
 ):
-    negotiation_id = await get_negotiation_id(request_id, negotiation_id)
+    # negotiation_id = await get_negotiation_id(request_id, negotiation_id)
 
     update_result = await negotiations_collection.update_one(
         {"_id": ObjectId(negotiation_id)},
         {"$set": {"negotiation_status": NegotiationStatus.AGREED.value}}
     )
 
-    return {"message": "Request agreed successfully", "request_id": request_id, "negotiation_id": str(negotiation_id)}
+    return {"message": "Request agreed successfully", "negotiation_id": str(negotiation_id), "negotiation_status" : NegotiationStatus.AGREED.value}
 
-@app.post("/producer/offer/finalize/{negotiation_id}/{offer_id}", summary="Accept an offer")
+@app.post("/producer/offer/finalize/{negotiation_id}", summary="Accept an offer")
 async def finalize_upcast_offer(
         negotiation_id: str = Path(..., description="The ID of the negotiation"),
-        offer_id: str = Path(..., description="The ID of the offer"),
+        # offer_id: str = Path(..., description="The ID of the offer"),
         user_id: str = Header(None, description="The ID of the user")
 ):
-    negotiation_id = await get_negotiation_id(offer_id, negotiation_id)
+    # negotiation_id = await get_negotiation_id(offer_id, negotiation_id)
 
     update_result = await negotiations_collection.update_one(
         {"_id": ObjectId(negotiation_id)},
         {"$set": {"negotiation_status": NegotiationStatus.FINALIZED.value}}
     )
 
-    return {"message": "Offer finalized successfully", "offer_id": offer_id, "negotiation_id": str(negotiation_id)}
+    return {"message": "Offer finalized successfully", "negotiation_id": str(negotiation_id), "negotiation_status" : NegotiationStatus.FINALIZED.value}
 
 @app.post("/negotiation/terminate/{negotiation_id}", summary="Terminate a negotiation")
 async def terminate_upcast_negotiation(
@@ -660,10 +699,10 @@ async def terminate_upcast_negotiation(
         {"$set": {"negotiation_status": NegotiationStatus.TERMINATED.value}}
     )
 
-    if update_result['matched_count'] == 0:
+    if update_result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Negotiation not found or you do not have permission to terminate this negotiation")
 
-    return {"message": "Negotiation terminated successfully", "negotiation_id": negotiation_id}
+    return {"message": "Negotiation terminated successfully", "negotiation_id": negotiation_id, "negotiation_status": NegotiationStatus.TERMINATED.value}
 
 
 if __name__ == "__main__":
