@@ -4,8 +4,36 @@ from rdflib import Graph, Namespace
 dpv_file_path = "./ontology/dpv.rdf"
 odrl_file_path = "./ontology/ODRL22.rdf"
 
-def get_rules_from_odrl():
-    ttl_file_path = odrl_file_path
+
+def get_dataset_titles_and_uris(ttl_file_path):
+    # Load the TTL file into an RDF graph
+    g = Graph()
+    g.parse(ttl_file_path, format="turtle")
+
+    # Define the relevant namespaces
+    ex = Namespace("http://example.org/datasets/")
+    dct = Namespace("http://purl.org/dc/terms/")
+
+    # Query for dataset titles and URIs
+    query = """
+    SELECT ?dataset ?title
+    WHERE {
+      ?dataset rdf:type ex:Dataset ;
+               dct:title ?title .
+    }
+    """
+
+    # Execute the query
+    result = g.query(query, initNs={"ex": ex, "dct": dct})
+
+    # Extract and return the list of dataset titles and URIs
+    dataset_info_list = [
+        {"uri": str(dataset), "label": str(title)} for dataset, title in result
+    ]
+    return dataset_info_list
+
+
+def get_rules_from_odrl(ttl_file_path):
     # Parse TTL data
     g = Graph()
     g.parse(ttl_file_path, format="xml")
@@ -36,8 +64,7 @@ def get_rules_from_odrl():
     return result_list
 
 
-def get_actors_from_dpv():
-    ttl_file_path = dpv_file_path
+def get_actors_from_dpv(ttl_file_path):
     g = Graph()
     g.parse(ttl_file_path, format="xml")
 
@@ -64,8 +91,7 @@ def get_actors_from_dpv():
     return result_list
 
 
-def get_purposes_from_dpv():
-    ttl_file_path = dpv_file_path
+def get_purposes_from_dpv(ttl_file_path):
     # Parse TTL data
     g = Graph()
     g.parse(ttl_file_path, format="xml")
@@ -94,8 +120,7 @@ def get_purposes_from_dpv():
     return result_list
 
 
-def get_constraints_types_from_odrl():
-    ttl_file_path = odrl_file_path
+def get_constraints_types_from_odrl(ttl_file_path):
     # Parse TTL data
     g = Graph()
     g.parse(ttl_file_path, format="xml")
@@ -120,9 +145,7 @@ def get_constraints_types_from_odrl():
     return result_list
 
 
-
-def get_actions_from_odrl():
-    ttl_file_path = odrl_file_path
+def get_actions_from_odrl(ttl_file_path):
     # Parse TTL content
     g = Graph()
     g.parse(ttl_file_path, format="xml")
@@ -147,8 +170,7 @@ def get_actions_from_odrl():
     return actions
 
 
-def get_operators_from_odrl():
-    ttl_file_path = odrl_file_path
+def get_operators_from_odrl(ttl_file_path):
     # Parse TTL content
     g = Graph()
     g.parse(ttl_file_path, format="xml")
@@ -171,4 +193,3 @@ def get_operators_from_odrl():
     ]
 
     return actions
-

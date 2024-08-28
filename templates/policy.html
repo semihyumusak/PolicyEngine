@@ -1,0 +1,1285 @@
+{% extends 'base.html' %}
+{%load static %}
+
+{% block inpagecss %}
+    body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    }
+
+    h2 {
+    text-align: center;
+    }
+
+    label {
+    display: block;
+    margin-bottom: 5px;
+    }
+
+    select, input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 0px;
+    box-sizing: border-box;
+    }
+
+    #constraintsContainer .constraintRow {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    }
+
+    #constraintsContainer .removeRow {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 5px 0;
+    cursor: pointer;
+    }
+
+    #addConstraintRow, #saveButton, #clearButton {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px 0;
+    cursor: pointer;
+    }
+
+
+    .common-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    padding: 5px 10px;
+    font-size: 14px;
+    margin: 10px 0;
+    cursor: pointer;
+
+    }
+
+    .button-container {
+        display: flex;
+        gap: 10px;
+    }
+
+
+    #refinementTargetContainer .refinementTargetRow {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    }
+
+    #refinementTargetContainer .removeRefinementTargetRow {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 5px 0;
+    cursor: pointer;
+    }
+    #refinementTargetContainer {
+    border: 1px solid #ccc; /* Border for the box */
+    padding: 5px; /* Padding for internal spacing */
+    margin-bottom: 20px; /* Adjust margin as needed */
+    }
+
+    #refinementTargetContainer .box {
+    background-color: #f8f8f8; /* Background color for the box */
+    }
+
+    #addRefinementTargetRow, #saveButton , #clearButton {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px 0;
+    cursor: pointer;
+    }
+
+
+    #refinementActorContainer .refinementActorRow {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    }
+
+    #refinementActorContainer .removeRefinementActorRow {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px 0;
+    cursor: pointer;
+    }
+    #refinementActorContainer {
+    border: 1px solid #ccc; /* Border for the box */
+    padding: 5px; /* Padding for internal spacing */
+    margin-bottom: 20px; /* Adjust margin as needed */
+    }
+
+    #refinementActorContainer .box {
+    background-color: #f8f8f8; /* Background color for the box */
+    }
+
+    #addRefinementActorRow, #saveButton , #clearButton {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px 0;
+    cursor: pointer;
+    }
+
+
+    #refinementActionContainer .refinementActionRow {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    }
+
+    #refinementActionContainer .removeRefinementActionRow {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 5px 0;
+    cursor: pointer;
+    }
+    #refinementActionContainer {
+    border: 1px solid #ccc; /* Border for the box */
+    padding: 5px; /* Padding for internal spacing */
+    margin-bottom: 20px; /* Adjust margin as needed */
+    }
+
+    #refinementActionContainer .box {
+    background-color: #f8f8f8; /* Background color for the box */
+    }
+
+    #addRefinementActionRow, #saveButton {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px 0;
+    cursor: pointer;
+    }
+
+    #refinementActionContainer .refinementActionRow {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    }
+
+    #refinementActionContainer .removeRefinementActionRow {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 5px 0;
+    cursor: pointer;
+    }
+    #refinementActionContainer {
+    border: 1px solid #ccc; /* Border for the box */
+    padding: 5px; /* Padding for internal spacing */
+    margin-bottom: 20px; /* Adjust margin as needed */
+    }
+
+    #refinementActionContainer .box {
+    background-color: #f8f8f8; /* Background color for the box */
+    }
+
+    #addRefinementActionRow, #saveButton {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px 0;
+    cursor: pointer;
+    }
+
+
+    #refinementPurposeContainer .refinementPurposeRow {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    }
+
+    #refinementPurposeContainer .removeRefinementPurposeRow {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 5px 0;
+    cursor: pointer;
+    }
+    #refinementPurposeContainer {
+    border: 1px solid #ccc; /* Border for the box */
+    padding: 5px; /* Padding for internal spacing */
+    margin-bottom: 20px; /* Adjust margin as needed */
+    }
+
+    #refinementPurposeContainer .box {
+    background-color: #f8f8f8; /* Background color for the box */
+    }
+
+    #addRefinementPurposeRow, #saveButton, #uploadButton {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px 0;
+    cursor: pointer;
+    }
+
+    #savedObjects {
+    margin-top: 20px;
+    }
+
+    #savedList {
+    list-style: none;
+    padding: 0;
+    }
+
+    #savedList li {
+    background-color: #f4f4f4;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 5px;
+    }
+
+    #queryTextbox {
+    width: 50%;
+    height: 150px;
+    float: center;
+    display: none;
+    }
+    #queryTextboxLabel {
+    display: none;
+    }
+
+    #constraintsContainer {
+    border: 1px solid #ccc; /* Border for the box */
+    padding: 5px; /* Padding for internal spacing */
+    margin-bottom: 20px; /* Adjust margin as needed */
+    }
+
+    #constraintsContainer .box {
+    background-color: #f8f8f8; /* Background color for the box */
+    }
+
+
+
+    .right-align {
+    float: right;
+    /* You can add more styles as needed */
+    }
+
+    #savedOdrl {
+    width: 100%;
+    box-sizing: border-box; /* This ensures that padding and border are included in the width */
+    }
+
+    .flex {
+    display: flex;
+    align-items: center; /* Align items vertically */
+    }
+    .flex > * {
+    margin-right: 10px; /* Add spacing between elements */
+    }
+
+    .form-card {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+    }
+
+    .form-actions {
+        margin-top: 10px;
+        text-align: right;
+    }
+
+    .remove-form-button {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .remove-form-button:hover {
+        background-color: #c82333;
+    }
+
+    .remove-form-button:focus {
+        outline: none;
+    }
+
+{% endblock %}
+{% block title %} Data Controller/Processor Home {% endblock %}
+{% block content %}
+    <main id="main">
+        <section id="faq" class="faq">
+            <div class="container" data-aos="fade-up">
+                <header class="section-header">
+                    <p>ODRL Policy Editor</p>
+                </header>
+
+                <div class="row">
+                    <div class="button-container">
+                        <input type="file" id="fileInput">
+                        <button id="uploadButton" class="common-button">Upload Rules</button>
+                        <button id="saveButton" class="common-button">Save Rules</button>
+                        <hr>
+                        <button id="newRuleButton" class="common-button">New Rule</button>
+                        <button id="clearButton" class="common-button">Clear</button>
+                        <textarea id="jsonTextarea" rows="1" cols="5"></textarea>
+                    </div>
+
+                    <div class="col-lg-12">
+                        <div class="form-card" style="display: none">
+
+                            <div>
+                                <label for="ruleDropdown">Rule:</label>
+                                <select id="ruleDropdown" class="dropdowns" onchange="actionChosen()"></select>
+                            </div>
+                            <div id="refinementActorContainer">
+                                <div class="flex">
+                                    <label for="ActorDropdown">Actor:</label>
+                                    <select id="ActorDropdown" class="dropdowns"></select>
+                                    <button id="addRefinementActorRow" >Refine</button>
+                                </div>
+
+                                <div class="refinementActorRow">
+                                    <label for="refinementActorDropdown">Refinement:</label>
+                                    <select id="refinementActorDropdown" class="refinementActorDropdown"></select>
+                                    <label for="operatorRefinementActorDropdown"></label>
+                                    <select id = "operatorRefinementActorDropdown" class="operatorRefinementActorDropdown"></select>
+                                    <label for="refinementActorValue"></label>
+                                    <input id="refinementActorValue" type="text" class="refinementActorValue" placeholder="Value e.g., '2020-12-12', 'http://example.org/'">
+                                    <button class="removeRefinementActorRow">X</button>
+                                </div>
+                            </div>
+
+                            <div id="refinementActionContainer">
+                                <div class="flex">
+                                    <label for="ActionDropdown">Action:</label>
+                                    <select id="ActionDropdown" class="dropdowns" onchange="actionChosen()"></select>
+                                    <button id="addRefinementActionRow" >Refine</button>
+                                </div>
+
+                                <div class="refinementActionRow">
+                                    <label for="refinementActionDropdown">Refinement:</label>
+                                    <select id="refinementActionDropdown" class="refinementActionDropdown"></select>
+                                    <label for="operatorRefinementActionDropdown"></label>
+                                    <select id = "operatorRefinementActionDropdown" class="operatorRefinementActionDropdown"></select>
+                                    <label for="refinementActionValue"></label>
+                                    <input id="refinementActionValue" type="text" class="refinementActionValue" placeholder="Value e.g., '2020-12-12', 'http://example.org/'">
+                                    <button class="removeRefinementActionRow">X</button>
+                                </div>
+
+                            </div>
+
+                            <div>
+                                <label for="queryTextbox" id="queryTextboxLabel">Enter a Query:</label><textarea id="queryTextbox" class="queryTextbox" placeholder="Write your query here."></textarea>
+                            </div>
+                            {#                    <div>#}
+                            {#                        <label for="purposeDropdown">Purpose:</label>#}
+                            {#                        <select id="purposeDropdown" class="dropdowns"></select>#}
+                            {#                    </div>#}
+                            <div id="refinementPurposeContainer">
+                                <div class="flex">
+                                    <label for="PurposeDropdown">Purpose:</label>
+                                    <select id="PurposeDropdown" class="dropdowns"></select>
+                                    <button id="addRefinementPurposeRow" >Refine</button>
+                                </div>
+
+                                <div class="refinementPurposeRow">
+                                    <label for="refinementPurposeDropdown">Refinement:</label>
+                                    <select id="refinementPurposeDropdown" class="refinementPurposeDropdown"></select>
+                                    <label for="operatorRefinementPurposeDropdown"></label>
+                                    <select id = "operatorRefinementPurposeDropdown" class="operatorRefinementPurposeDropdown"></select>
+                                    <label for="refinementPurposeValue"></label>
+                                    <input id="refinementPurposeValue" type="text" class="refinementPurposeValue" placeholder="Value e.g., '2020-12-12', 'http://example.org/'">
+                                    <button class="removeRefinementPurposeRow">X</button>
+                                </div>
+
+                            </div>
+
+                            <div id="refinementTargetContainer">
+                                <div class="flex">
+                                    <label for="TargetDropdown">Target:</label>
+                                    <select id="TargetDropdown" class="dropdowns"></select>
+                                    <button id="addRefinementTargetRow" >Refine</button>
+                                </div>
+
+                                <div class="refinementTargetRow">
+                                    <label for="refinementTargetDropdown">Refinement:</label>
+                                    <select id="refinementTargetDropdown" class="refinementTargetDropdown"></select>
+                                    <label for="operatorRefinementTargetDropdown"></label>
+                                    <select id = "operatorRefinementTargetDropdown" class="operatorRefinementTargetDropdown"></select>
+                                    <label for="refinementTargetValue"></label>
+                                    <input id="refinementTargetValue" type="text" class="refinementTargetValue" placeholder="Value e.g., '2020-12-12', 'http://example.org/'">
+                                    <button class="removeRefinementTargetRow">X</button>
+                                </div>
+                            </div>
+
+                            <div id="constraintsContainer">
+                                <button id="addConstraintRow" >Add Constraint</button>
+                                <div class="constraintRow">
+                                    <label for="constraintDropdown">Constraint:</label>
+                                    <select id = "constraintDropdown" class="constraintDropdown"></select>
+                                    <label for="operatorDropdown"></label>
+                                    <select id = "operatorDropdown" class="operatorDropdown"></select>
+                                    <label for="constraintValue"></label>
+                                    <input id="constraintValue" type="text" class="constraintValue" placeholder="Value e.g., '2020-12-12', 'http://example.org/'">
+                                    <button class="removeRow">X</button>
+                                </div>
+
+                            </div>
+
+                            <div class="form-actions">
+                                <button class="remove-form-button">Remove Rule</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="savedObjects">
+                        <h3>Saved Objects:</h3>
+                        <textarea id="savedOdrl" rows="30" cols="50"></textarea>
+                        <ul id="savedList"></ul>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main><!-- End #main -->
+    <script>
+
+        function _clearAdditionalRefinementRows(refinementName) {
+            $('.refinement'+refinementName+'Row').not(':first').remove();
+        }
+        function _clearRefinementRows(refinementName) {
+            $('.refinement'+refinementName+'Row').each(function () {
+                $(this).find('select').val('');
+                $(this).find('input').val('');
+            });
+        }
+        function _clearAdditionalRefinementRowsForm(refinementName, $form) {
+            $form.find('.refinement'+refinementName+'Row').not(':first').remove();
+        }
+        function _clearRefinementRowsForm(refinementName, $form) {
+            $form.find('.refinement'+refinementName+'Row').each(function () {
+                $(this).find('select').val('');
+                $(this).find('input').val('');
+            });
+        }
+
+        // Function to fill refinement dropdown based on selected target
+        function _fillRefinementDropdown(uri, refinementName) {
+            _clearAdditionalRefinementRows(refinementName);
+            _clearRefinementRows(refinementName);
+
+
+                $.ajax({
+                    type: 'POST',
+                    url: 'organization/ajax_get_properties_from_properties_file',
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'  // Include CSRF token
+                    },
+                    data: JSON.stringify({
+                        uri: uri
+                    }),
+                    success: function (response) {
+                        var refinementDropdown = $('#refinement' + refinementName + 'Dropdown');
+                        refinementDropdown.empty();
+                        $.each(response.fields, function (index, field) {
+                            refinementDropdown.append($('<option>', {
+                                value: field.uri,
+                                text: field.label
+                            }));
+                        });
+                    },
+                    error: function (error) {
+                        console.error('Error fetching column names:', error);
+                    }
+                });
+            }
+
+        // Function to fill refinement dropdown based on selected target
+        function _fillRefinementDropdownForm(uri, refinementName, $form) {
+            _clearAdditionalRefinementRowsForm(refinementName, $form);
+            _clearRefinementRowsForm(refinementName, $form);
+                $.ajax({
+                    type: 'POST',
+                    url: 'organization/ajax_get_properties_from_properties_file',
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'  // Include CSRF token
+                    },
+                    data: JSON.stringify({
+                        uri: uri
+                    }),
+                    success: function (response) {
+                        var refinementDropdown = $form.find('#refinement' + refinementName + 'Dropdown');
+                        refinementDropdown.empty();
+                        $.each(response.fields, function (index, field) {
+                            refinementDropdown.append($('<option>', {
+                                value: field.uri,
+                                text: field.label
+                            }));
+                        });
+                    },
+                    error: function (error) {
+                        console.error('Error fetching column names:', error);
+                    }
+                });
+            }
+        function _actions_for_dropdown_form(dropdownName, $form) {
+            // Trigger when target dropdown changes
+            $form.find('#' + dropdownName + 'Dropdown').off('change').change(function() {
+                var targetValue = $(this).val();
+                _fillRefinementDropdownForm(targetValue, dropdownName, $form);
+            });
+
+            $form.find('#addRefinement' + dropdownName + 'Row').off('click').click(function() {
+                if ($form.find('#' + dropdownName + 'Dropdown').val() !== null) {
+                    let newRow = $form.find('.refinement' + dropdownName + 'Row:first').clone();
+                    newRow.find('select').val('');
+                    newRow.find('input').val('');
+                    newRow.css('display', 'flex'); // Set display property to block for visibility
+                    newRow.appendTo($form.find('#refinement' + dropdownName + 'Container'));
+                }
+            });
+
+            // Use delegation for dynamically added elements
+            $form.find('#refinement' + dropdownName + 'Container').off('click', '.removeRefinement' + dropdownName + 'Row').on('click', '.removeRefinement' + dropdownName + 'Row', function() {
+                $(this).closest('.refinement' + dropdownName + 'Row').remove();
+            });
+        }
+
+        function _actions_for_dropdown(dropdownName){
+            // Trigger when target dropdown changes
+            $('#'+dropdownName+'Dropdown').change(function () {
+                var targetValue = $(this).val();
+                _fillRefinementDropdown(targetValue, dropdownName);
+            });
+
+            $('#addRefinement'+dropdownName+'Row').click(function () {
+                if ($('#'+dropdownName+'Dropdown').val() !== null) {
+                    let newRow = $('.refinement' + dropdownName + 'Row:first').clone();
+                    newRow.find('select').val('');
+                    newRow.find('input').val('');
+                    newRow.css('display', 'flex'); // Set display property to block for visibility
+                    newRow.appendTo('#refinement' + dropdownName + 'Container');
+
+                }
+            });
+            // Remove refinement row
+            $('#refinement'+dropdownName+'Container').on('click', '.removeRefinement'+dropdownName+'Row', function () {
+                $(this).closest('.refinement'+dropdownName+'Row').remove();
+            });
+
+        }
+        _actions_for_dropdown("Actor");
+        _actions_for_dropdown("Action");
+        _actions_for_dropdown("Purpose");
+        _actions_for_dropdown("Target");
+
+        function actionChosen() {
+            var action = document.getElementById("ActionDropdown").value;
+            var policyType = document.getElementById("ruleDropdown").value;
+
+            if (action === "http://www.w3.org/ns/odrl/2/execute" && policyType === "http://www.w3.org/ns/odrl/2/Prohibition") {
+                var hiddenTextbox = document.getElementById("queryTextbox");
+                hiddenTextbox.style.display = "block";
+
+                var hiddenTextboxLabel = document.getElementById("queryTextboxLabel");
+                hiddenTextboxLabel.style.display = "block";
+            }
+            else {
+                var hiddenTextbox = document.getElementById("queryTextbox");
+                hiddenTextbox.style.display = "none";
+                hiddenTextbox.value = "";
+                var hiddenTextboxLabel = document.getElementById("queryTextboxLabel");
+                hiddenTextboxLabel.style.display = "none";
+            }
+        }
+
+        var saveddata = [];
+        function setOptgroupSelectListOptions(class_name, jsonData, type = "purpose") {
+            var selectList = $('#' + class_name);
+            selectList.empty();
+            var optgroupgeneral;
+            if (type == "processing") {
+                optgroupgeneral = $('<optgroup>', {label: "Processing Operations"}).appendTo(selectList);
+            } else {
+                optgroupgeneral = $('<optgroup>', {label: "Others"}).appendTo(selectList);
+            }
+
+
+            $.each(jsonData.data.children, function (index, child) {
+
+                if (child.children && child.children.length > 0) {
+                    var optgroup = $('<optgroup>', {label: child.node_name}).appendTo(selectList);
+                    $.each(child.children, function (subIndex, subChild) {
+                        var subOption = $('<option>', {
+                            value: subChild.node_name.toLowerCase(),
+                            text: subChild.node_name
+                        });
+                        optgroup.append(subOption);
+                    });
+                } else {
+                    var option = $('<option>', {
+                        value: child.node_name.toLowerCase(),
+                        text: child.node_name
+                    });
+                    optgroupgeneral.append(option);
+                }
+            });
+        }
+        function reset_row(name)
+        {
+            var firstRefinementRow = $('#refinement'+name+'Container .refinement'+name+'Row:first');
+            firstRefinementRow.find('.refinement'+name+'Dropdown').val(''); // Reset the refinement dropdown
+            firstRefinementRow.find('.operatorRefinement'+name+'Dropdown').val(''); // Reset the operator dropdown
+            firstRefinementRow.find('.refinement'+name+'Value').val(''); // Reset the refinement value input field
+
+            $('#refinement'+name+'Container .refinement'+name+'Row:not(:first)').remove();
+        }
+        $(document).ready(function () {
+
+            // Function to fill dropdown
+            function fillDropdown(dropdownId, data) {
+                var dropdown = $('#' + dropdownId);
+                dropdown.empty();
+                $.each(data, function (index, item) {
+                    dropdown.append($('<option>', {
+                        value: item.uri,
+                        text: item.label
+                    }));
+                });
+                dropdown.prop('selectedIndex', -1);
+            }
+
+            // Fill all dropdowns on page load
+            fillDropdown('ruleDropdown',   {{ rules|safe }} );
+            fillDropdown('ActionDropdown', {{ actions|safe }} );
+            fillDropdown('TargetDropdown', {{ targets|safe }} );
+            fillDropdown('PurposeDropdown', {{ purposes|safe }} );
+            fillDropdown('constraintDropdown', {{ constraints|safe }} );
+            fillDropdown('operatorDropdown', {{ operators|safe }} );
+            fillDropdown('operatorRefinementTargetDropdown', {{ operators|safe }} );
+            fillDropdown('operatorRefinementActorDropdown', {{ operators|safe }} );
+            fillDropdown('operatorRefinementActionDropdown', {{ operators|safe }} );
+            fillDropdown('operatorRefinementPurposeDropdown', {{ operators|safe }} );
+            fillDropdown('operatorRefinementDropdown', {{ operators|safe }} );
+            fillDropdown('ActorDropdown', {{ actors|safe }} );
+
+            $('#addRefinementRow').click(function () {
+                let newRow = $('.refinementRow:first').clone();
+                newRow.find('select').val('');
+                newRow.find('input').val('');
+                newRow.css('display', 'flex'); // Set display property to block for visibility
+                newRow.appendTo('#refinementContainer');
+            });
+            // Remove refinement row
+            $('#refinementContainer').on('click', '.removeRefinementRow', function () {
+                $(this).closest('.refinementRow').remove();
+            });
+
+            // Add new constraint row
+            $('#addConstraintRow').click(function () {
+                let newRow;
+                if (document.getElementById('constraintsContainer').getElementsByClassName('constraintRow').length > 0) {
+                    newRow = $('#constraintsContainer .constraintRow:first').clone();
+                    newRow.find('input').val('');
+                    newRow.find('select').val('');
+                    newRow.css('display', 'flex');
+                    newRow.appendTo('#constraintsContainer');
+                }
+                else {
+                    newRow = document.createElement('div');
+                    newRow.classList.add('constraintRow');
+                    const label = document.createElement('label');
+                    label.setAttribute('for', 'constraintDropdown');
+                    label.innerText = "Constraint:";
+                    const select = document.createElement('select');
+                    select.setAttribute('id', 'constraintDropdown');
+                    select.classList.add('constraintDropdown');
+                    newRow.append(label);
+                    newRow.append(select);
+                    const label2 = document.createElement('label');
+                    label2.setAttribute('for', 'operatorDropdown');
+                    const select2 = document.createElement('select');
+                    select2.setAttribute('id', 'operatorDropdown');
+                    select2.classList.add('operatorDropdown');
+                    newRow.append(label2);
+                    newRow.append(select2);
+                    const label3 = document.createElement('label');
+                    label3.setAttribute('for', 'constraintValue');
+                    const text = document.createElement('input');
+                    text.setAttribute('id', 'constraintValue');
+                    text.classList.add('constraintValue');
+                    text.placeholder = "Value e.g., '2020-12-12', 'http://example.org/'";
+                    newRow.append(label3);
+                    newRow.append(text);
+                    const button = document.createElement('button');
+                    button.classList.add('removeRow');
+                    button.innerText = "Remove";
+                    newRow.append(button);
+                    $('#constraintsContainer').append(newRow);
+                    fillDropdown('constraintDropdown', {{ constraints|safe }} );
+                    fillDropdown('operatorDropdown', {{ operators|safe }} );
+                }
+            });
+
+            // Remove constraint row
+            $('#constraintsContainer').on('click', '.removeRow', function () {
+                $(this).closest('.constraintRow').remove();
+            });
+
+            $('#clearButton').click(function () {
+
+                    // Reset the form to initial state
+                    $('#ruleDropdown, #ActorDropdown, #ActionDropdown, #TargetDropdown, #PurposeDropdown, #operatorDropdown, #constraintDropdown').each(function (){
+                        this.selectedIndex=-1;
+                    })
+                    $('#queryTextbox').val('');
+
+                    // Reset the first constraint row
+                    var firstConstraintRow = $('#constraintsContainer .constraintRow:first');
+                    firstConstraintRow.find('.constraintDropdown').val(''); // Reset the constraint dropdown
+                    firstConstraintRow.find('.operatorDropdown').val(''); // Reset the operator dropdown
+                    firstConstraintRow.find('.constraintValue').val(''); // Reset the constraint value input field
+
+
+                    // Reset the first refinement row
+                    var firstRefinementRow = $('#refinementContainer .refinementRow:first');
+                    firstRefinementRow.find('.refinementDropdown').val(''); // Reset the refinement dropdown
+                    firstRefinementRow.find('.operatorRefinementDropdown').val(''); // Reset the operator dropdown
+                    firstRefinementRow.find('.refinementValue').val(''); // Reset the refinement value input field
+
+
+
+                    $('#constraintsContainer .constraintRow:not(:first)').remove();
+                    $('#refinementContainer .refinementRow:not(:first)').remove();
+
+                    reset_row("Actor");
+                    reset_row("Action");
+                    reset_row("Purpose");
+                    reset_row("Target");
+
+                    var hiddenTextbox = document.getElementById("queryTextbox");
+                    hiddenTextbox.style.display = "none";
+                    hiddenTextbox.value = "";
+
+                    var hiddenTextboxLabel = document.getElementById("queryTextboxLabel");
+                    hiddenTextboxLabel.style.display = "none";
+                }
+            );
+
+// Upload button functionality
+            $('#uploadButton22').click(function () {
+                var jsonText = $('#jsonTextarea').val();
+                try {
+                    var jsonData = JSON.parse(jsonText);
+                    loadJsonData(jsonData);
+                } catch (error) {
+                    alert('Invalid JSON format.');
+                }
+            });
+            $('#newRuleButton').click(function(){ loadJsonData({})
+
+            });
+
+            $('#uploadButton').click(function () {
+                $("body").find('.form-card:gt(0)').remove();
+                var jsonText = $('#jsonTextarea').val();
+                try {
+                    var jsonData = JSON.parse(jsonText);
+                    if (Array.isArray(jsonData)) {
+                        // Iterate over each dictionary in the array with a delay
+                        jsonData.forEach(function (data, index) {
+                            setTimeout(function () {
+                                loadJsonData(data);
+                            }, index * 1000); // 1000 ms = 1 second
+                        });
+                    } else {
+                        alert('JSON data is not an array.');
+                    }
+                } catch (error) {
+                    alert('Invalid JSON format.');
+                }
+            });
+
+            function applyFormActions($form) {
+
+                $form.find('.removeRow').click(function () {
+                    $(this).parent().remove();
+                });
+                $form.find('.remove-form-button').click(function() {
+                    var formCard = $(this).closest('.form-card');
+                    if (formCard.length > 0) {
+                        formCard.remove();
+                    }
+                });
+                    // Add new constraint row within the form
+                $form.find('#addConstraintRow').click(function () {
+                    let newRow;
+                    if ($form.find('#constraintsContainer').find('.constraintRow').length > 0) {
+                        newRow = $form.find('#constraintsContainer .constraintRow:first').clone();
+                        newRow.find('input').val('');
+                        newRow.find('select').val('');
+                        newRow.css('display', 'flex');
+                        newRow.appendTo($form.find('#constraintsContainer'));
+                    } else {
+                        newRow = document.createElement('div');
+                        newRow.classList.add('constraintRow');
+                        const label = document.createElement('label');
+                        label.setAttribute('for', 'constraintDropdown');
+                        label.innerText = "Constraint:";
+                        const select = document.createElement('select');
+                        select.setAttribute('id', 'constraintDropdown');
+                        select.classList.add('constraintDropdown');
+                        newRow.append(label);
+                        newRow.append(select);
+                        const label2 = document.createElement('label');
+                        label2.setAttribute('for', 'operatorDropdown');
+                        const select2 = document.createElement('select');
+                        select2.setAttribute('id', 'operatorDropdown');
+                        select2.classList.add('operatorDropdown');
+                        newRow.append(label2);
+                        newRow.append(select2);
+                        const label3 = document.createElement('label');
+                        label3.setAttribute('for', 'constraintValue');
+                        const text = document.createElement('input');
+                        text.setAttribute('id', 'constraintValue');
+                        text.classList.add('constraintValue');
+                        text.placeholder = "Value e.g., '2020-12-12', 'http://example.org/'";
+                        newRow.append(label3);
+                        newRow.append(text);
+                        const button = document.createElement('button');
+                        button.classList.add('removeRow');
+                        button.innerText = "Remove";
+                        newRow.append(button);
+                        $form.find('#constraintsContainer').append(newRow);
+                        fillDropdown('constraintDropdown', {{ constraints|safe }});
+                        fillDropdown('operatorDropdown', {{ operators|safe }});
+                    }
+
+                    // Apply the remove click action to the new row
+                    applyFormActions($(newRow));
+                });
+            }
+
+
+
+            function loadJsonData(data) {
+                var $originalForm = $('.form-card').first();
+                var $newForm = $originalForm.clone();
+
+                $newForm.css('display', '');
+
+                $newForm.appendTo('.col-lg-12');
+                _actions_for_dropdown_form("Actor", $newForm);
+                _actions_for_dropdown_form("Action", $newForm);
+                _actions_for_dropdown_form("Purpose", $newForm);
+                _actions_for_dropdown_form("Target", $newForm);
+                // Populate HTML components within the duplicated form
+                $newForm.find('#ruleDropdown').val(data.rule);
+                $newForm.find('#ActorDropdown').val(data.actor);
+                $newForm.find('#ActionDropdown').val(data.action);
+                $newForm.find('#TargetDropdown').val(data.target);
+                $newForm.find('#PurposeDropdown').val(data.purpose);
+                $newForm.find('#queryTextbox').val(data.query);
+
+                // Clear existing rows before loading new data
+                $newForm.find('.constraintRow:gt(0)').remove();
+                $newForm.find('.refinementActorRow:gt(0)').remove();
+                $newForm.find('.refinementActionRow:gt(0)').remove();
+                $newForm.find('.refinementPurposeRow:gt(0)').remove();
+                $newForm.find('.refinementTargetRow:gt(0)').remove();
+
+                applyFormActions($newForm);
+
+                if (Object.keys(data).length > 0)
+                {
+                    // Load constraints
+                    data.constraints.forEach(function (constraint) {
+                        var newConstraintRow = $('<div class="constraintRow">').append(
+                            $('<select class="constraintDropdown">').val(constraint.type),
+                            $('<select class="operatorDropdown">').val(constraint.operator),
+                            $('<input type="text" class="constraintValue">').val(constraint.value),
+                            $('<button class="removeRow">X</button>').click(function () {
+                                $(this).parent().remove();
+                            })
+                        );
+                        $newForm.find('#constraintsContainer').append(newConstraintRow);
+                    });
+
+                    // Function to add refinement row with delay
+                    function addRefinementRowWithDelay($form, entity, entityName, type, operator, value, index) {
+                        setTimeout(function () {
+                            addRefinementRow($form, entity, entityName, type, operator, value);
+                        }, index * 1000); // 1000 ms = 1 second
+                    }
+
+                    // Load actor refinements synchronously with delay
+                    data.actorrefinements.forEach(function (refinement, index) {
+                        addRefinementRowWithDelay($newForm, data.actor, 'Actor', refinement.type, refinement.operator, refinement.value, index);
+                    });
+
+                    // Load action refinements synchronously with delay
+                    var actionRefinementsLength = data.actionrefinements.length;
+                    data.actionrefinements.forEach(function (refinement, index) {
+                        addRefinementRowWithDelay($newForm, data.action, 'Action', refinement.type, refinement.operator, refinement.value, index + actionRefinementsLength);
+                    });
+
+                    // Load purpose refinements synchronously with delay
+                    var purposeRefinementsLength = data.purposerefinements.length;
+                    data.purposerefinements.forEach(function (refinement, index) {
+                        addRefinementRowWithDelay($newForm, data.purpose, 'Purpose', refinement.type, refinement.operator, refinement.value, index + actionRefinementsLength);
+                    });
+
+                    // Load target refinements synchronously with delay
+                    var targetRefinementsLength = data.targetrefinements.length;
+                    data.targetrefinements.forEach(function (refinement, index) {
+                        addRefinementRowWithDelay($newForm, data.target, 'Target', refinement.type, refinement.operator, refinement.value, index + actionRefinementsLength + purposeRefinementsLength);
+                    });
+                }
+
+            }
+
+            function loadJsonData22(data) {
+                $('#ruleDropdown').val(data.rule);
+                $('#ActorDropdown').val(data.actor);
+                $('#ActionDropdown').val(data.action);
+                $('#TargetDropdown').val(data.target);
+                $('#PurposeDropdown').val(data.purpose);
+                $('#queryTextbox').val(data.query);
+
+                // Clear existing rows before loading new data
+                $('.constraintRow:gt(0)').remove();
+                $('.refinementActorRow:gt(0)').remove();
+                $('.refinementActionRow:gt(0)').remove();
+                $('.refinementPurposeRow:gt(0)').remove();
+                $('.refinementTargetRow:gt(0)').remove();
+
+                // Load constraints
+                data.constraints.forEach(function (constraint) {
+                    var newConstraintRow = $('<div class="constraintRow">').append(
+                        $('<select class="constraintDropdown">').val(constraint.type),
+                        $('<select class="operatorDropdown">').val(constraint.operator),
+                        $('<input type="text" class="constraintValue">').val(constraint.value),
+                        $('<button class="removeRow">X</button>').click(function () {
+                            $(this).parent().remove();
+                        })
+                    );
+                    $('#constraintsContainer').append(newConstraintRow);
+                });
+
+                // Load actor refinements
+                data.actorrefinements.forEach(function (refinement) {
+                    addRefinementRow(data.actor, 'Actor', refinement.type, refinement.operator, refinement.value);
+                });
+
+                // Load action refinements
+                data.actionrefinements.forEach(function (refinement) {
+                    addRefinementRow(data.action, 'Action', refinement.type, refinement.operator, refinement.value);
+                });
+
+                // Load purpose refinements
+                data.purposerefinements.forEach(function (refinement) {
+                    addRefinementRow(data.purpose, 'Purpose', refinement.type, refinement.operator, refinement.value);
+                });
+
+                // Load target refinements
+                data.targetrefinements.forEach(function (refinement) {
+                    addRefinementRow(data.target, 'Target', refinement.type, refinement.operator, refinement.value);
+                });
+            }
+
+            function addRefinementRow(newForm, parent_value, entity, type, operator, value) {
+
+                _clearAdditionalRefinementRows(entity);
+                _clearRefinementRows(entity);
+
+
+                setTimeout(function() {
+                    console.log("World");
+                }, 1000);
+                $.ajax({
+                    type: 'POST',
+                    url: 'organization/ajax_get_properties_from_properties_file',
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'  // Include CSRF token
+                    },
+                    data: JSON.stringify({
+                        uri: parent_value
+                    }),
+                    success: function (response) {
+                        setTimeout(function() {  // Add delay here
+                            var refinementDropdown = $('#refinement' + entity + 'Dropdown');
+                            refinementDropdown.empty();
+                            $.each(response.fields, function (index, field) {
+                                refinementDropdown.append($('<option>', {
+                                    value: field.uri,
+                                    text: field.label
+                                }));
+                            });
+
+                            let newRow = $(`.refinement${entity}Row:first`).clone();
+
+                            // Set the values for the cloned element
+                            newRow.find(`select.refinement${entity}Dropdown`).val(type);
+                            newRow.find(`select.operatorRefinement${entity}Dropdown`).val(operator);
+                            newRow.find('input').val(value);
+
+                            if (value.trim() !== '') {
+                                newRow.css({
+                                    'display': 'flex', // Overwrite the display property to make it visible
+                                    'justify-content': 'space-between',
+                                    'align-items': 'center',
+                                    'margin-bottom': '10px',
+                                    'visibility': 'visible' // Ensure the row itself is visible
+                                });
+                                {#newRow.appendTo();#}
+                                c = newForm.find('#refinement' + entity + 'Container');
+                                c.append(newRow);
+                            }
+
+
+                        }, 1000);  // Delay in milliseconds (1000 ms = 1 second)
+                    },
+                    error: function (error) {
+                        console.error('Error fetching column names:', error);
+                    }
+                });
+            }
+
+            $('#saveButton').click(function () {
+                var saveddata = []; // Initialize saveddata array to store data from all forms
+
+                // Iterate over each form with class .form-card
+                $('.form-card').each(function () {
+                    var form = $(this);
+                    var data = {
+                        rule: form.find('#ruleDropdown').val(),
+                        actor: form.find('#ActorDropdown').val(),
+                        action: form.find('#ActionDropdown').val(),
+                        target: form.find('#TargetDropdown').val(),
+                        purpose: form.find('#PurposeDropdown').val(),
+                        query: form.find('#queryTextbox').val(),
+                        constraints: [],
+                        actorrefinements: [],
+                        actionrefinements: [],
+                        purposerefinements: [],
+                        targetrefinements: []
+                    };
+
+                    // Gather constraints data
+                    form.find('.constraintRow').each(function () {
+                        var constraint = {
+                            type: $(this).find('.constraintDropdown').val(),
+                            operator: $(this).find('.operatorDropdown').val(),
+                            value: $(this).find('.constraintValue').val()
+                        };
+                        data.constraints.push(constraint);
+                    });
+
+                    // Gather actor refinements data
+                    form.find('.refinementActorRow').each(function () {
+                        var refinement = {
+                            type: $(this).find('.refinementActorDropdown').val(),
+                            operator: $(this).find('.operatorRefinementActorDropdown').val(),
+                            value: $(this).find('.refinementActorValue').val()
+                        };
+                        data.actorrefinements.push(refinement);
+                    });
+
+                    // Gather action refinements data
+                    form.find('.refinementActionRow').each(function () {
+                        var refinement = {
+                            type: $(this).find('.refinementActionDropdown').val(),
+                            operator: $(this).find('.operatorRefinementActionDropdown').val(),
+                            value: $(this).find('.refinementActionValue').val()
+                        };
+                        data.actionrefinements.push(refinement);
+                    });
+
+                    // Gather purpose refinements data
+                    form.find('.refinementPurposeRow').each(function () {
+                        var refinement = {
+                            type: $(this).find('.refinementPurposeDropdown').val(),
+                            operator: $(this).find('.operatorRefinementPurposeDropdown').val(),
+                            value: $(this).find('.refinementPurposeValue').val()
+                        };
+                        data.purposerefinements.push(refinement);
+                    });
+
+                    // Gather target refinements data
+                    form.find('.refinementTargetRow').each(function () {
+                        var refinement = {
+                            type: $(this).find('.refinementTargetDropdown').val(),
+                            operator: $(this).find('.operatorRefinementTargetDropdown').val(),
+                            value: $(this).find('.refinementTargetValue').val()
+                        };
+                        data.targetrefinements.push(refinement);
+                    });
+
+                    // Push collected data into saveddata array
+                    saveddata.push(data);
+                });
+
+                // Display saved objects (optional)
+                $('#savedList').append('<li>' + JSON.stringify(saveddata) + '</li>');
+
+                // Perform AJAX request
+                $.ajax({
+                    type: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'  // Include CSRF token
+                    },
+                    url: 'organization/convert_to_odrl',
+                    contentType: 'application/json',
+                    data: JSON.stringify(saveddata),
+                    success: function (result) {
+                        // Handle success response
+                        console.log(result);
+                        var formattedResult = JSON.stringify(result, null, 2).replace(/\\n/g, '\n').replace(/\\"/g, '"');
+                        $('#savedOdrl').val(formattedResult); // Assuming savedOdrl is a textarea or input field
+                        exportFormattedResultToJSON(formattedResult)
+                    },
+                    error: function (error) {
+                        // Handle error response
+                        console.error('Error:', error);
+                    }
+                });
+
+                // Optionally log or manipulate data before sending to the server
+                console.log(saveddata);
+            });
+            function exportFormattedResultToJSON(formattedResult) {
+                // Convert formattedResult to JSON string
+                var jsonString = JSON.stringify(formattedResult, null, 2);
+
+                // Create a Blob object with the JSON data
+                var blob = new Blob([jsonString], { type: 'application/json' });
+
+                // Generate a temporary anchor element
+                var a = document.createElement('a');
+                var url = URL.createObjectURL(blob);
+                a.href = url;
+                a.download = 'odrl.json';
+
+                // Append the anchor to the body and click it
+                document.body.appendChild(a);
+                a.click();
+
+                // Remove the temporary anchor
+                document.body.removeChild(a);
+            }
+            $('#fileInput').change(function (event) {
+                $("body").find('.form-card:gt(0)').remove(); // Remove existing cards if any
+                var input = event.target;
+                var reader = new FileReader();
+                reader.onload = function(){
+                    try {
+
+                        var jsonData = JSON.parse(reader.result);
+                        // Check if jsonData is a string and parse again if necessary
+                        if (typeof jsonData === 'string') {
+                            jsonData = JSON.parse(jsonData);
+                        }
+
+                        // Check if jsonData is an object (dictionary)
+                        if (typeof jsonData === 'object' && !Array.isArray(jsonData)) {
+                            // Clear previous content
+                            $('#jsonOutput').empty();
+                        jsonData.data.forEach(function (data, index) {
+                        setTimeout(function () {
+                            loadJsonData(data);
+                        }, index * 1000); // 1000 ms = 1 second
+                        });
+
+                        } else {
+                            alert('JSON data is not an array.');
+                        }
+                    } catch (error) {
+                        alert('Invalid JSON format.');
+                    }
+                };
+                reader.readAsText(input.files[0]);
+            });
+
+        });
+
+    </script>
+{% endblock %}
+```

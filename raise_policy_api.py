@@ -579,7 +579,7 @@ def check_policy_conflict(existing_policy: Graph, request_policy: Graph) -> Unio
         PREFIX dpv: <https://w3id.org/dpv/dpv-owl#>
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         
-        SELECT ?policy ?conflictingPolicy
+        SELECT * 
             WHERE {
                 ?policy a odrl:Policy ;
                         odrl:permission ?permission .
@@ -607,8 +607,16 @@ def check_policy_conflict(existing_policy: Graph, request_policy: Graph) -> Unio
     # Prepare the SPARQL query
     query = prepareQuery(sparql_query, initNs={"odrl": ODRL, "dpv": DPV, "rdfs": RDFS})
     # Merge the two graphs
-    merged_policy = existing_policy + request_policy
 
+    dpv_graph = Graph()
+    dpv_graph.parse("https://w3id.org/dpv/dpv-owl", format="xml")  # Or TTL if available
+
+    odrl_graph = Graph()
+    odrl_graph.parse("http://www.w3.org/ns/odrl/2/ODRL22.ttl", format="turtle")
+
+    merged_policy = existing_policy + request_policy
+    merged_policy += dpv_graph
+    merged_policy += odrl_graph
     # Execute the query on the merged policy
     results = merged_policy.query(query)
     # Execute the query on the existing and request policies

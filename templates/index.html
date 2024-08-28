@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My FastAPI App</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <h1>Welcome to My FastAPI App</h1>
+    <p>This is a simple HTML page served by FastAPI.</p>
+    <button id="fetch-objects">Fetch Objects</button>
+    <ul id="objects-list"></ul>
+
+    <script>
+        document.getElementById('fetch-objects').addEventListener('click', () => {
+            fetch('/api/objects')
+                .then(response => response.json())
+                .then(data => {
+                    const objectsList = document.getElementById('objects-list');
+                    objectsList.innerHTML = '';
+                    data.forEach(obj => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `ID: ${obj.id}, Name: ${obj.name}, Description: ${obj.description}`;
+                        objectsList.appendChild(listItem);
+                    });
+                })
+                .catch(error => console.error('Error fetching objects:', error));
+        });
+    </script>
+</body>
+</html>

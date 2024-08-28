@@ -53,7 +53,7 @@
     function extractLogicExpressions() {
       var inputText = document.getElementById("inputText").value;
 
-      fetch('http://62.171.168.208:8080/extract_logic_expressions', {
+      fetch('extract_logic_expressions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

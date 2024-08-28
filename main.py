@@ -6,8 +6,9 @@ Description: This is a reference implementation of the engine. Logical pipeline 
 Contributors:
 
 """
+import json
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from Constraint import Constraint
 from Parsers import ODRLParser
 from PolicyEnforcement import PolicyEnforcement
@@ -24,7 +25,7 @@ policies = odrl.parse_file(file_path)
 @app.route('/', methods=['GET'])
 def index():
     # Read the content of the HTML file
-    with open('logic.html', 'r') as file:
+    with open('html/logic.html', 'r') as file:
         html_content = file.read()
     return html_content
 @app.route('/evaluate_odrl', methods=['POST'])
@@ -94,6 +95,52 @@ def evaluate():
 
     return jsonify({"allowed": allowed, "reason": reason})
 
+@app.route('/get_properties_from_properties_file', methods=['GET'])
+def get_properties_from_properties_file(request):
+    try:
+        uri = request.GET["uri"]
+        fields = get_properties_of_a_class(uri,"./media/default_ontology/AdditionalProperties.ttl")
+        res = 200
+        # res = _fetch_valid_status(odrl)
+        return jsonify({"fields":fields})
+    except BaseException as b:
+            return b
+
+@app.route('/convert_to_odrl', methods=['GET'])
+def convert_to_odrl(request):
+    if request.method == "POST":
+        try:
+            response = json.loads(request.body)
+            odrl = convert_list_to_odrl_jsonld_no_user(response)
+            res = 200
+            # res = _fetch_valid_status(odrl)
+            return jsonify(odrl)
+            #return JsonResponse({"Policy": odrl, "response": res})
+        except BaseException as b:
+            return jsonify({})
+            #return b
+@app.route('/create_rule', methods=['GET'])
+def create_rule_dataset_no_user():
+    rules = get_rules_from_odrl("./media/default_ontology/ODRL22.rdf")
+    actors = get_actors_from_dpv("./media/default_ontology/dpv.rdf")
+    actions = get_actions_from_odrl("./media/default_ontology/ODRL22.rdf")
+    targets = get_dataset_titles_and_uris("./media/default_ontology/Datasets.ttl")
+    constraints = get_constraints_types_from_odrl("./media/default_ontology/ODRL22.rdf")
+    purposes = get_purposes_from_dpv("./media/default_ontology/dpv.rdf")
+    operators = get_operators_from_odrl("./media/default_ontology/ODRL22.rdf")
+
+    rules.append({"label": "Obligation", "uri": "http://www.w3.org/ns/odrl/2/Obligation"})
+
+    context = {
+        "rules": rules,
+        "actors": actors,
+        "actions": actions,
+        "targets": targets,
+        "constraints": constraints,
+        "operators": operators,
+        "purposes": purposes,
+    }
+    return render_template("./html/policy.html", **context)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port="8080")
+    app.run(host='0.0.0.0', port="8080")

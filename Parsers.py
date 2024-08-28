@@ -14,9 +14,7 @@ class PolicyObject:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-
 class ODRLParser:
-
     def parse_file(self,file_name):
         if file_name is not None:
             file_name = file_name
@@ -30,7 +28,6 @@ class ODRLParser:
             list_of_policies.append(self.parse(p))
 
         return list_of_policies
-
 
     def parse_list(self,parsed_policy):
         list_of_policies = []
