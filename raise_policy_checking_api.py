@@ -437,3 +437,7 @@ def convert_to_rdf(policy: Dict) -> Graph:
     g.parse(data=policy, format="json-ld")
     return g
 # To run the app, use: uvicorn filename:app --reload
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001, reload=True)
